@@ -154,7 +154,7 @@ int k_release_processor(void)
 
 
 int set_process_priority(int process_id, int priority) {
-	if (process_id < 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
+	if (process_id <= 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
 	if (priority < 0 || priority >= HIDDEN) return RTX_ERR;
 	PCB* process = gp_pcbs[process_id];
 	process->m_priority = priority;
@@ -162,7 +162,7 @@ int set_process_priority(int process_id, int priority) {
 }
 
 int get_process_priority(int process_id) {
-	if (process_id < 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
+	if (process_id <= 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
 	PCB* process = gp_pcbs[process_id];
 	return process->m_priority;
 }

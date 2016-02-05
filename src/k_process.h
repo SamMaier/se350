@@ -21,8 +21,8 @@
 void process_init(void);               /* initialize all procs in the system */
 PCB *scheduler(void);                  /* pick the pid of the next to run process */
 int k_release_process(void);           /* kernel release_process function */
-int set_process_priority(int, int);
-int get_process_priority(int);
+int set_process_priority(int, int);    /* set process priority */
+int get_process_priority(int);         /* get process priority */
 
 extern U32 *alloc_stack(U32 size_b);   /* allocate stack for a process */
 extern void __rte(void);               /* pop exception stack frame */
