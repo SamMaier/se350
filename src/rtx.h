@@ -14,17 +14,18 @@
 #define MEDIUM  1
 #define LOW     2
 #define LOWEST  3
+#define HIDDEN  4
 
 /* ----- Types ----- */
 typedef unsigned int U32;
 
 /* initialization table item */
 typedef struct proc_init
-{	
-	int m_pid;	        /* process id */ 
-	int m_priority;         /* initial priority, not used in this example. */ 
+{
+	int m_pid;	        /* process id */
+	int m_priority;         /* initial priority, not used in this example. */
 	int m_stack_size;       /* size of stack in words */
-	void (*mpf_start_pc) ();/* entry point of the process */    
+	void (*mpf_start_pc) ();/* entry point of the process */
 } PROC_INIT;
 
 /* ----- RTX User API ----- */
