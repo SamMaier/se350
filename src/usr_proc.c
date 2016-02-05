@@ -32,19 +32,33 @@ void set_test_procs() {
 
 /**
  * @brief: a process that prints 5x6 uppercase letters
- *         and then yields the cpu.
+ *         and then yields the cpu. Requests for 6
+ *         blocks of memory and releases them when the
+ *         6th is printed.
  */
 void proc1(void)
 {
 	int i = 0;
 	int ret_val = 10;
 	int x = 0;
+	void* memoryAllocs[6];
 
 	while ( 1) {
 		if ( i != 0 && i%5 == 0 ) {
 			uart1_put_string("\n\r");
 			
+			memoryAllocs[(i%30)/5] = request_memory_block();
+			*(U32*)memoryAllocs[(i%30)/5] = (U32)i + 12;
+			
 			if ( i%30 == 0 ) {
+				// Releasing out of order for testing
+				release_memory_block(memoryAllocs[4]);
+				release_memory_block(memoryAllocs[2]);
+				release_memory_block(memoryAllocs[1]);
+				release_memory_block(memoryAllocs[0]);
+				release_memory_block(memoryAllocs[5]);
+				release_memory_block(memoryAllocs[3]);
+				
 				ret_val = release_processor();
 #ifdef DEBUG_0
 				printf("proc1: ret_val=%d\n", ret_val);

@@ -16,6 +16,8 @@ U32 *gp_stack; /* The last allocated stack low address. 8 bytes aligned */
                /* The first stack starts at the RAM high address */
 	       /* stack grows down. Fully decremental stack */
 
+U32 *gp_heap_head; /* Points to the first free memory block in our heap linked list. */
+
 /**
  * @brief: Initialize RAM as follows:
 
@@ -27,7 +29,7 @@ U32 *gp_stack; /* The last allocated stack low address. 8 bytes aligned */
           |                           |
           |        HEAP               |
           |                           |
-          |---------------------------|
+          |---------------------------|<--- p_end
           |        PCB 2              |
           |---------------------------|
           |        PCB 1              |
@@ -35,9 +37,9 @@ U32 *gp_stack; /* The last allocated stack low address. 8 bytes aligned */
           |        PCB pointers       |
           |---------------------------|<--- gp_pcbs
           |        Padding            |
-          |---------------------------|  
+          |---------------------------|
           |Image$$RW_IRAM1$$ZI$$Limit |
-          |...........................|          
+          |...........................|
           |       RTX  Image          |
           |                           |
 0x10000000+---------------------------+ Low Address
@@ -47,33 +49,53 @@ U32 *gp_stack; /* The last allocated stack low address. 8 bytes aligned */
 void memory_init(void)
 {
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
+	U32 *previous = NULL;
+	U32 *current;
+
 	int i;
-  
+
 	/* 4 bytes padding */
 	p_end += 4;
 
 	/* allocate memory for pcb pointers   */
 	gp_pcbs = (PCB **)p_end;
 	p_end += NUM_TEST_PROCS * sizeof(PCB *);
-  
+
 	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
 		gp_pcbs[i] = (PCB *)p_end;
-		p_end += sizeof(PCB); 
+		p_end += sizeof(PCB);
 	}
-#ifdef DEBUG_0  
+#ifdef DEBUG_0
 	printf("gp_pcbs[0] = 0x%x \n", gp_pcbs[0]);
 	printf("gp_pcbs[1] = 0x%x \n", gp_pcbs[1]);
 #endif
-	
+
 	/* prepare for alloc_stack() to allocate memory for stacks */
-	
+
 	gp_stack = (U32 *)RAM_END_ADDR;
 	if ((U32)gp_stack & 0x04) { /* 8 bytes alignment */
-		--gp_stack; 
+		--gp_stack;
 	}
-  
-	/* allocate memory for heap, not implemented yet*/
-  
+
+	/* allocate memory for heap */
+	/* p_end points to the bottom of our heap
+
+	   Note: Stacks have not been allocated yet, we are assuming that
+	   		 we won't run into the stack memory. */
+
+  /**
+  *   4 bytes padding - for some reason, the pointer at p_end
+	*   has issues setting its value from other processes.
+	*   Padding fixes this issue.
+	*/
+	current = (U32*)p_end + 4;
+
+	for (i = 0; i < NUM_MEMORY_BLOCKS; i++, current = (U32*)((U8*)current + MEMORY_BLOCK_SIZE)) {
+		*((U32*)current) = (U32)previous;
+		//Set current block to point to next block
+		previous = current;
+	}
+	gp_heap_head = previous;
 }
 
 /**
@@ -83,31 +105,47 @@ void memory_init(void)
  * POST:  gp_stack is updated.
  */
 
-U32 *alloc_stack(U32 size_b) 
+U32 *alloc_stack(U32 size_b)
 {
 	U32 *sp;
 	sp = gp_stack; /* gp_stack is always 8 bytes aligned */
-	
+
 	/* update gp_stack */
 	gp_stack = (U32 *)((U8 *)sp - size_b);
-	
+
 	/* 8 bytes alignement adjustment to exception stack frame */
 	if ((U32)gp_stack & 0x04) {
-		--gp_stack; 
+		--gp_stack;
 	}
 	return sp;
 }
 
+/**
+ * @brief: gets memory block of size MEMORY_BLOCK_SIZE
+ * @return: Pointer to this block. NULL if no blocks available.
+ * POST:  gp_stack is updated.
+ */
 void *k_request_memory_block(void) {
-#ifdef DEBUG_0 
+	void* returnVal = (void *)gp_heap_head;
+	
+#ifdef DEBUG_0
 	printf("k_request_memory_block: entering...\n");
 #endif /* ! DEBUG_0 */
-	return (void *) NULL;
+	
+	// Making sure we do not deference the HEAD if it is null.
+	if (gp_heap_head != NULL) {
+		gp_heap_head = (U32*)(*gp_heap_head);
+	}
+	return returnVal;
 }
 
 int k_release_memory_block(void *p_mem_blk) {
-#ifdef DEBUG_0 
+	U32* head_value = gp_heap_head;
+#ifdef DEBUG_0
 	printf("k_release_memory_block: releasing block @ 0x%x\n", p_mem_blk);
 #endif /* ! DEBUG_0 */
+	gp_heap_head = (U32*)p_mem_blk;
+	*gp_heap_head = (U32)head_value;
+
 	return RTX_OK;
 }
