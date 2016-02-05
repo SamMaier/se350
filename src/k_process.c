@@ -152,17 +152,23 @@ int k_release_processor(void)
 	return RTX_OK;
 }
 
-
 int set_process_priority(int process_id, int priority) {
+	PCB* process;
+
 	if (process_id <= 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
 	if (priority < 0 || priority >= HIDDEN) return RTX_ERR;
-	PCB* process = gp_pcbs[process_id];
+
+	process = gp_pcbs[process_id];
 	process->m_priority = priority;
+
 	return RTX_OK;
 }
 
 int get_process_priority(int process_id) {
+	PCB* process;
+
 	if (process_id < 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
-	PCB* process = gp_pcbs[process_id];
+
+	process = gp_pcbs[process_id];
 	return process->m_priority;
 }

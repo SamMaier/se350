@@ -16,6 +16,13 @@
 #define NULL 0
 #define NUM_TEST_PROCS 2
 
+/* Process Priority. The bigger the number is, the lower the priority is*/
+#define HIGH    0
+#define MEDIUM  1
+#define LOW     2
+#define LOWEST  3
+#define HIDDEN  4
+
 #ifdef DEBUG_0
 #define USR_SZ_STACK 0x200         /* user proc stack size 512B   */
 #else
