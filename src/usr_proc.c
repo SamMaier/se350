@@ -48,7 +48,8 @@ void proc1(void)
 			uart1_put_string("\n\r");
 			
 			memoryAllocs[(i%30)/5] = request_memory_block();
-			*(U32*)memoryAllocs[(i%30)/5] = (U32)i + 12;
+			*(U32*)memoryAllocs[(i%30)/5] = (U32)i;
+			*((U8*)memoryAllocs[(i%30)/5] + 127) = (U8)i;
 			
 			if ( i%30 == 0 ) {
 				// Releasing out of order for testing

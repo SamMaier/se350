@@ -17,6 +17,7 @@
 
 /* ----- Types ----- */
 typedef unsigned int U32;
+typedef unsigned char U8;
 
 /* initialization table item */
 typedef struct proc_init
