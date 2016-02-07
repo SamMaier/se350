@@ -72,6 +72,26 @@ PCB *proc_priority_pop(int priority) {
     return front_proc;
 }
 
+PCB *proc_priority_pop_by_proc(PCB *proc) {
+    PCB *found_proc;
+    PCB *temp_proc = g_proc_priority_front[proc->m_priority];
+
+    if (temp_proc == proc) {
+        /* proc is at the front of the queue */
+        return proc_priority_pop(proc->m_priority);
+    } else {
+        /* traverse our queue till we find proc */
+        while (temp_proc != NULL && temp_proc->mp_next != NULL && temp_proc->mp_next != proc) {
+            temp_proc = temp_proc->mp_next;
+        }
+
+        /* remove and return temp_proc->mp_next */
+        found_proc = temp_proc->mp_next;
+        temp_proc->mp_next = found_proc->mp_next;
+        return found_proc;
+    }
+}
+
 PCB *proc_priority_pop_highest() {
     PCB *highest_proc = NULL;
     int priority;
@@ -224,8 +244,9 @@ int set_process_priority(int process_id, int priority) {
 	if (process_id <= 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
 	if (priority < 0 || priority >= HIDDEN) return RTX_ERR;
 
-	process = gp_pcbs[process_id];
+	process = proc_priority_pop_by_proc(gp_pcbs[process_id]);
 	process->m_priority = priority;
+    proc_priority_push(process);
 
 	return RTX_OK;
 }
