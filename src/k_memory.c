@@ -130,7 +130,9 @@ U32 *alloc_stack(U32 size_b)
  */
 void *k_request_memory_block(void) {
 	void* returnVal;
+#ifdef DEBUG_0
 	static int count = 0;
+#endif
 
 	returnVal = (void *)gp_heap_head;
 
@@ -141,9 +143,13 @@ void *k_request_memory_block(void) {
 	if (gp_heap_head != NULL) {
 		// Making sure we do not deference the HEAD if it is null.
 		gp_heap_head = (U32*)(*gp_heap_head);
+#ifdef DEBUG_0
 		count++;
+#endif
 	} else {
+#ifdef DEBUG_0
 		printf("Out of memory, oops\n");
+#endif
 		/* we have no free memory, set current process to BLOCKED */
 		gp_current_process->m_state = BLOCKED;
 		k_release_processor();
