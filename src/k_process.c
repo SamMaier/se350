@@ -134,6 +134,8 @@ void process_init()
 			*(--sp) = 0x0;
 		}
 		(gp_pcbs[i])->mp_sp = sp;
+
+        proc_priority_push(gp_pcbs[i]);
 	}
 }
 
