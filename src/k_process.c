@@ -94,45 +94,38 @@ PCB *proc_priority_pop_proc(PCB *proc) {
 }
 
 PCB *proc_priority_pop_ready() {
-    int priority = 0;
-    PCB *proc = g_proc_priority_front[priority];
+    int priority;
+    PCB *proc = NULL;
 
-    while (priority < 4) {
-        if (proc == NULL) {
-            /* check next priority if the end of the current priority is reached */
-            priority++;
-            proc = g_proc_priority_front[priority];
-        } else {
-            /* check if a process is blocked or ready */
+    for (priority = 0; priority < 5; priority++) {
+        proc = g_proc_priority_front[priority];
+
+        while (proc != NULL) {
             if (proc->m_state == BLOCKED) proc = proc->mp_next;
             else return proc_priority_pop_proc(proc);
         }
     }
 
-    /* this must be the null process since priority == 4 */
-    proc_priority_pop_proc(proc);
+    /* should never reach here, NULL process should always be returned */
     return proc;
 }
 
 PCB *proc_priority_pop_blocked() {
-    int priority = 0;
+    int priority;
     int max_priority = gp_current_process->m_priority;
-    PCB *proc = g_proc_priority_front[priority];
+    PCB *proc = NULL;
 
-    while (priority < max_priority) {
-        if (proc == NULL) {
-            /* check next priority if the end of the current priority is reached */
-            priority++;
-            proc = g_proc_priority_front[priority];
-        } else {
-            /* check if a process is blocked or ready */
+    for (priority = 0; priority < max_priority; priority++) {
+        proc = g_proc_priority_front[priority];
+
+        while (proc != NULL) {
             if (proc->m_state == RDY) proc = proc->mp_next;
             else return proc_priority_pop_proc(proc);
         }
     }
 
-    /* blocked process with higher priority than current process was not found */
-    return NULL;
+    /* if no blocked process of higher priority is found, return NULL */
+    return proc;
 }
 
 /**
