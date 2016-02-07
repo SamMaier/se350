@@ -112,10 +112,12 @@ void proc2(void)
 void proc3(void) {
 	int ret_val = 30;
 	printf("Running process 3    ok\n");
-	ret_val = release_processor();
-#ifdef DEBUG_0
-	printf("proc3: ret_val=%d\n", ret_val);
-#endif
+	while (1) {
+		ret_val = release_processor();
+	#ifdef DEBUG_0
+		printf("proc3: ret_val=%d\n", ret_val);
+	#endif
+	}
 }
 
 /**
@@ -124,10 +126,12 @@ void proc3(void) {
 void proc4(void) {
 	int ret_val = 40;
 	printf("Running process 4    ok\n");
-	ret_val = release_processor();
-#ifdef DEBUG_0
-	printf("proc4: ret_val=%d\n", ret_val);
-#endif
+	while (1) {
+		ret_val = release_processor();
+	#ifdef DEBUG_0
+		printf("proc4: ret_val=%d\n", ret_val);
+	#endif
+	}
 }
 
 /**
@@ -136,10 +140,12 @@ void proc4(void) {
 void proc5(void) {
 	int ret_val = 50;
 	printf("Running process 5    ok\n");
-	ret_val = release_processor();
-#ifdef DEBUG_0
-	printf("proc5: ret_val=%d\n", ret_val);
-#endif
+	while (1) {
+		ret_val = release_processor();
+	#ifdef DEBUG_0
+		printf("proc5: ret_val=%d\n", ret_val);
+	#endif
+	}
 }
 
 /**
@@ -148,8 +154,10 @@ void proc5(void) {
 void proc6(void) {
 	int ret_val = 60;
 	printf("Running process 6    ok\n");
-	ret_val = release_processor();
-#ifdef DEBUG_0
-	printf("proc6: ret_val=%d\n", ret_val);
-#endif
+	while (1) {
+		ret_val = release_processor();
+	#ifdef DEBUG_0
+		printf("proc6: ret_val=%d\n", ret_val);
+	#endif
+	}
 }
