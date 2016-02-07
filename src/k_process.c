@@ -148,18 +148,12 @@ void process_init()
 
 PCB *scheduler(void)
 {
-	if (gp_current_process == NULL) {
-		gp_current_process = gp_pcbs[0];
-		return gp_pcbs[0];
-	}
+    PCB *old_proc = gp_current_process;
+    gp_current_process = proc_priority_get_next();
 
-	if ( gp_current_process == gp_pcbs[0] ) {
-		return gp_pcbs[1];
-	} else if ( gp_current_process == gp_pcbs[1] ) {
-		return gp_pcbs[0];
-	} else {
-		return NULL;
-	}
+    if (old_proc != NULL) proc_priority_push(old_proc);
+
+    return gp_current_process;
 }
 
 /*@brief: switch out old pcb (p_pcb_old), run the new pcb (gp_current_process)
