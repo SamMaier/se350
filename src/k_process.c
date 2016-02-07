@@ -41,7 +41,7 @@ PCB *g_proc_priority_back[5] = {NULL, NULL, NULL, NULL, NULL};
 int is_proc_priority_empty(int priority) {
     /* return true if priority is out of bounds */
     if (priority < 0 || priority > 4) return 1;
-	return (g_proc_priority_front[priority] != NULL);
+	return (g_proc_priority_front[priority] == NULL);
 }
 
 void proc_priority_push(PCB *proc) {
