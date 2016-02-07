@@ -24,3 +24,5 @@
 .#*
 *.uvgui.*
 *.uvopt
+
+.DS_Store
