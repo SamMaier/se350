@@ -70,7 +70,7 @@ void proc1(void)
 
 #endif /* DEBUG_0 */
 			}
-			for ( x = 0; x < 500000; x++); // some artifical delay
+			for ( x = 0; x < 5000; x++); // some artifical delay
 		}
 		uart1_put_char('A' + i%26);
 		i++;
@@ -98,7 +98,7 @@ void proc2(void)
 
 #endif /* DEBUG_0 */
 			}
-			for ( x = 0; x < 500000; x++); // some artifical delay
+			for ( x = 0; x < 5000; x++); // some artifical delay
 		}
 		uart1_put_char('0' + i%10);
 		i++;
@@ -107,31 +107,49 @@ void proc2(void)
 }
 
 /**
- * @brief:      
+ * @brief:
  */
 void proc3(void) {
-	release_processor();
+	int ret_val = 30;
+	printf("Running process 3    ok\n");
+	ret_val = release_processor();
+#ifdef DEBUG_0
+	printf("proc3: ret_val=%d\n", ret_val);
+#endif
 }
 
 /**
- * @brief:      
+ * @brief:
  */
 void proc4(void) {
-	release_processor();
+	int ret_val = 40;
+	printf("Running process 4    ok\n");
+	ret_val = release_processor();
+#ifdef DEBUG_0
+	printf("proc4: ret_val=%d\n", ret_val);
+#endif
 }
 
 /**
- * @brief:      
+ * @brief:
  */
 void proc5(void) {
-	release_processor();
+	int ret_val = 50;
+	printf("Running process 5    ok\n");
+	ret_val = release_processor();
+#ifdef DEBUG_0
+	printf("proc5: ret_val=%d\n", ret_val);
+#endif
 }
 
 /**
- * @brief:      
+ * @brief:
  */
 void proc6(void) {
-	release_processor();
+	int ret_val = 60;
+	printf("Running process 6    ok\n");
+	ret_val = release_processor();
+#ifdef DEBUG_0
+	printf("proc6: ret_val=%d\n", ret_val);
+#endif
 }
-
-
