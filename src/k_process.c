@@ -92,33 +92,28 @@ PCB *proc_priority_pop_by_proc(PCB *proc) {
     }
 }
 
-PCB *proc_priority_pop_highest() {
-    PCB *highest_proc = NULL;
-    int priority;
+PCB *proc_priority_get_next() {
+    int priority = 0;
+    PCB *proc = g_proc_priority_front[priority];
 
-    for (priority = 0; priority < 5; priority++) {
-        if (!is_proc_priority_empty(priority)) {
-            highest_proc = proc_priority_pop(priority);
-            break;
+    while (priority < 4) {
+        if (proc == NULL) {
+            /* check next priority if the end of the current priority is reached */
+            priority++;
+            proc = g_proc_priority_front[priority];
+        } else {
+            /* check if a process is blocked or ready */
+            if (proc->m_state == BLOCKED) proc = proc->mp_next;
+            else {
+                proc_priority_pop_by_proc(proc);
+                return proc;
+            }
         }
     }
 
-    return highest_proc;
-}
-
-PCB *proc_priority_get_next() {
-    PCB *next_proc;
-    PCB *temp_proc;
-
-    next_proc = proc_priority_pop_highest();
-
-    while (next_proc != NULL && next_proc->m_state == BLOCKED) {
-        temp_proc = next_proc;
-        next_proc = proc_priority_pop_highest();
-        proc_priority_push(temp_proc);
-    }
-
-    return next_proc;
+    /* this must be the null process since priority == 4 */
+    proc_priority_pop_by_proc(proc);
+    return proc;
 }
 
 /**
