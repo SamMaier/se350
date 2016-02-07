@@ -72,6 +72,35 @@ PCB *proc_priority_pop(int priority) {
     return front_proc;
 }
 
+PCB *proc_priority_pop_highest() {
+    PCB *highest_proc = NULL;
+    int priority;
+
+    for (priority = 0; priority < 5; priority++) {
+        if (!is_proc_priority_empty(priority)) {
+            highest_proc = proc_priority_pop(priority);
+            break;
+        }
+    }
+
+    return highest_proc;
+}
+
+PCB *proc_priority_get_next() {
+    PCB *next_proc;
+    PCB *temp_proc;
+
+    next_proc = proc_priority_pop_highest();
+
+    while (next_proc != NULL && next_proc->m_state == BLOCKED) {
+        temp_proc = next_proc;
+        next_proc = proc_priority_pop_highest();
+        proc_priority_push(temp_proc);
+    }
+
+    return next_proc;
+}
+
 /**
  * @biref: initialize all processes in the system
  * NOTE: We assume there are only two user processes in the system in this example.
