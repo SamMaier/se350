@@ -102,16 +102,34 @@ PCB *proc_priority_pop_ready() {
         } else {
             /* check if a process is blocked or ready */
             if (proc->m_state == BLOCKED) proc = proc->mp_next;
-            else {
-                proc_priority_pop_proc(proc);
-                return proc;
-            }
+            else return proc_priority_pop_proc(proc);
         }
     }
 
     /* this must be the null process since priority == 4 */
     proc_priority_pop_proc(proc);
     return proc;
+}
+
+PCB *proc_priority_pop_blocked() {
+    int priority = 0;
+    int max_priority = gp_current_process->m_priority;
+    PCB *proc = g_proc_priority_front[priority];
+
+    while (priority < max_priority) {
+        if (proc == NULL) {
+            /* check next priority if the end of the current priority is reached */
+            priority++;
+            proc = g_proc_priority_front[priority];
+        } else {
+            /* check if a process is blocked or ready */
+            if (proc->m_state == RDY) proc = proc->mp_next;
+            else return proc_priority_pop_proc(proc);
+        }
+    }
+
+    /* blocked process with higher priority than current process was not found */
+    return NULL;
 }
 
 /**
