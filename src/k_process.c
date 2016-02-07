@@ -202,7 +202,7 @@ int process_switch(PCB *p_pcb_old)
 
     if (state == NEW) {
         if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
-            p_pcb_old->m_state = RDY;
+            if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = RDY;
             p_pcb_old->mp_sp = (U32 *) __get_MSP();
         }
         gp_current_process->m_state = RUN;
@@ -214,7 +214,7 @@ int process_switch(PCB *p_pcb_old)
 
     if (gp_current_process != p_pcb_old) {
         if (state == RDY){
-            p_pcb_old->m_state = RDY;
+            if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = RDY;
             p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
             gp_current_process->m_state = RUN;
             __set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack
