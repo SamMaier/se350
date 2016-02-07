@@ -56,7 +56,7 @@ void proc_priority_push(PCB *proc) {
     }
 }
 
-PCB *proc_priority_pop(int priority) {
+PCB *proc_priority_pop_front(int priority) {
     PCB *front_proc;
 
     /* if our queue is empty, return a NULL pointer */
@@ -77,7 +77,7 @@ PCB *proc_priority_pop_proc(PCB *proc) {
     PCB *temp_proc = g_proc_priority_front[proc->m_priority];
 
     /* proc is at the front of the queue */
-    if (temp_proc == proc) return proc_priority_pop(proc->m_priority);
+    if (temp_proc == proc) return proc_priority_pop_front(proc->m_priority);
 
     /* traverse our queue till we find proc */
     while (temp_proc != NULL && temp_proc->mp_next != NULL && temp_proc->mp_next != proc) {
@@ -90,7 +90,7 @@ PCB *proc_priority_pop_proc(PCB *proc) {
     return found_proc;
 }
 
-PCB *proc_priority_get_next() {
+PCB *proc_priority_pop_ready() {
     int priority = 0;
     PCB *proc = g_proc_priority_front[priority];
 
@@ -162,7 +162,7 @@ void process_init()
 PCB *scheduler(void)
 {
     PCB *old_proc = gp_current_process;
-    gp_current_process = proc_priority_get_next();
+    gp_current_process = proc_priority_pop_ready();
 
     if (old_proc != NULL) proc_priority_push(old_proc);
 
@@ -240,6 +240,11 @@ int set_process_priority(int process_id, int priority) {
     process = proc_priority_pop_proc(gp_pcbs[process_id]);
     process->m_priority = priority;
     proc_priority_push(process);
+
+    /* preempt if the new priority is ready and has a higher priority */
+    if (priority < gp_current_process->m_priority && process->m_state == RDY) {
+        k_release_processor();
+    }
 
     return RTX_OK;
 }
