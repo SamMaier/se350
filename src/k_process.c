@@ -34,6 +34,44 @@ U32 g_switch_flag = 0;          /* whether to continue to run the process before
 PROC_INIT g_proc_table[NUM_TEST_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
+/* process priority queues */
+PCB *g_proc_priority_front[5] = {NULL, NULL, NULL, NULL, NULL};
+PCB *g_proc_priority_back[5] = {NULL, NULL, NULL, NULL, NULL};
+
+int is_proc_priority_empty(int priority) {
+    /* return true if priority is out of bounds */
+    if (priority < 0 || priority > 4) return 1;
+	return (g_proc_priority_front[priority] != NULL);
+}
+
+void proc_priority_push(PCB *proc) {
+	if (is_proc_priority_empty(proc->m_priority)) {
+        /* if queue is empty, set both the front and back to proc */
+        g_proc_priority_front[proc->m_priority] = proc;
+        g_proc_priority_back[proc->m_priority] = proc;
+    } else {
+        /* if queue is not empty, add proc to the back of the queue */
+        g_proc_priority_back[proc->m_priority]->mp_next = proc;
+        g_proc_priority_back[proc->m_priority] = proc;
+    }
+}
+
+PCB *proc_priority_pop(int priority) {
+    PCB *front_proc;
+
+    /* if our queue is empty, return a NULL pointer */
+    if (is_proc_priority_empty(priority)) return NULL;
+
+    front_proc = g_proc_priority_front[priority];
+    g_proc_priority_front[priority] = front_proc->mp_next;
+
+    /* if queue only had 1 proc, it is now empty */
+    if (g_proc_priority_front[priority] == NULL) g_proc_priority_back[priority] = NULL;
+
+    front_proc->mp_next = NULL;
+    return front_proc;
+}
+
 /**
  * @biref: initialize all processes in the system
  * NOTE: We assume there are only two user processes in the system in this example.
@@ -47,6 +85,7 @@ void process_init()
 	set_test_procs();
 	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
 		g_proc_table[i].m_pid = g_test_procs[i].m_pid;
+		g_proc_table[i].m_priority = g_test_procs[i].m_priority;
 		g_proc_table[i].m_stack_size = g_test_procs[i].m_stack_size;
 		g_proc_table[i].mpf_start_pc = g_test_procs[i].mpf_start_pc;
 	}
@@ -54,7 +93,9 @@ void process_init()
 	/* initilize exception stack frame (i.e. initial context) for each process */
 	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
 		int j;
+        (gp_pcbs[i])->mp_next = NULL;
 		(gp_pcbs[i])->m_pid = (g_proc_table[i]).m_pid;
+        (gp_pcbs[i])->m_priority = (g_proc_table[i]).m_priority;
 		(gp_pcbs[i])->m_state = NEW;
 
 		sp = alloc_stack((g_proc_table[i]).m_stack_size);
