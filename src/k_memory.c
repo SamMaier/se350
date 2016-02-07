@@ -18,6 +18,9 @@ U32 *gp_stack; /* The last allocated stack low address. 8 bytes aligned */
 
 U32 *gp_heap_head; /* Points to the first free memory block in our heap linked list. */
 
+extern PCB *gp_current_process;
+extern int k_release_processor(void);
+
 /**
  * @brief: Initialize RAM as follows:
 
@@ -126,16 +129,26 @@ U32 *alloc_stack(U32 size_b)
  * POST:  gp_stack is updated.
  */
 void *k_request_memory_block(void) {
-	void* returnVal = (void *)gp_heap_head;
-	
+	void* returnVal;
+	static int count = 0;
+
+	returnVal = (void *)gp_heap_head;
+
 #ifdef DEBUG_0
-	printf("k_request_memory_block: entering...\n");
+	printf("k_request_memory_block #%d: entering...\n", count);
 #endif /* ! DEBUG_0 */
-	
-	// Making sure we do not deference the HEAD if it is null.
+
 	if (gp_heap_head != NULL) {
+		// Making sure we do not deference the HEAD if it is null.
 		gp_heap_head = (U32*)(*gp_heap_head);
+		count++;
+	} else {
+		printf("Out of memory, oops\n");
+		/* we have no free memory, set current process to BLOCKED */
+		gp_current_process->m_state = BLOCKED;
+		k_release_processor();
 	}
+
 	return returnVal;
 }
 

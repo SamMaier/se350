@@ -24,7 +24,7 @@ void set_test_procs() {
 		g_test_procs[i].m_priority=LOWEST;
 		g_test_procs[i].m_stack_size=0x100;
 	}
-  
+
 	g_test_procs[0].mpf_start_pc = &proc1;
 	g_test_procs[1].mpf_start_pc = &proc2;
 }
@@ -46,31 +46,31 @@ void proc1(void)
 	while ( 1) {
 		if ( i != 0 && i%5 == 0 ) {
 			uart1_put_string("\n\r");
-			
+
 			memoryAllocs[(i%30)/5] = request_memory_block();
 			*(U32*)memoryAllocs[(i%30)/5] = (U32)i;
 			*((U8*)memoryAllocs[(i%30)/5] + 127) = (U8)i;
-			
+
 			if ( i%30 == 0 ) {
 				// Releasing out of order for testing
-				release_memory_block(memoryAllocs[4]);
-				release_memory_block(memoryAllocs[2]);
-				release_memory_block(memoryAllocs[1]);
-				release_memory_block(memoryAllocs[0]);
-				release_memory_block(memoryAllocs[5]);
-				release_memory_block(memoryAllocs[3]);
-				
+				// release_memory_block(memoryAllocs[4]);
+				// release_memory_block(memoryAllocs[2]);
+				// release_memory_block(memoryAllocs[1]);
+				// release_memory_block(memoryAllocs[0]);
+				// release_memory_block(memoryAllocs[5]);
+				// release_memory_block(memoryAllocs[3]);
+
 				ret_val = release_processor();
 #ifdef DEBUG_0
 				printf("proc1: ret_val=%d\n", ret_val);
-			
+
 #endif /* DEBUG_0 */
 			}
 			for ( x = 0; x < 500000; x++); // some artifical delay
 		}
 		uart1_put_char('A' + i%26);
 		i++;
-		
+
 	}
 }
 
@@ -86,18 +86,18 @@ void proc2(void)
 	while ( 1) {
 		if ( i != 0 && i%5 == 0 ) {
 			uart1_put_string("\n\r");
-			
+
 			if ( i%30 == 0 ) {
 				ret_val = release_processor();
 #ifdef DEBUG_0
 				printf("proc2: ret_val=%d\n", ret_val);
-			
+
 #endif /* DEBUG_0 */
 			}
 			for ( x = 0; x < 500000; x++); // some artifical delay
 		}
 		uart1_put_char('0' + i%10);
 		i++;
-		
+
 	}
 }

@@ -180,10 +180,9 @@ void process_init()
 PCB *scheduler(void)
 {
     PCB *old_proc = gp_current_process;
-    gp_current_process = proc_priority_pop_ready();
-
     if (old_proc != NULL) proc_priority_push(old_proc);
 
+    gp_current_process = proc_priority_pop_ready();
     return gp_current_process;
 }
 
