@@ -1,3 +1,12 @@
+# SE350 Lab Documentation
+
+Prepared by:
+
+* Hamdan Javeed
+* Jessica Wu
+* Sam Maier
+* David Fu
+
 # RTX API
 
 ## release_processor
@@ -48,4 +57,4 @@ int release_memory_block(void * memory_block);
 
 Restores a memory block to the heap. The memory block becomes available for use if requested.
 
-The function will return `0` on a successful operation and `1` otherwise. **TODO**
+The function will return `0` on a successful operation and `1` otherwise.
