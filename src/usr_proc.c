@@ -6,6 +6,7 @@
  * NOTE: Each process is in an infinite loop. Processes never terminate.
  */
 
+#include <LPC17xx.H>
 #include "rtx.h"
 #include "uart_polling.h"
 #include "usr_proc.h"
@@ -36,8 +37,6 @@ void set_test_procs() {
  *         6th is printed.
  */
 void proc1(void) {
-		int i;
-	
 		set_process_priority(g_test_procs[0].m_pid, LOWEST);
 	
     printf("G021_test: START\n");
@@ -45,12 +44,8 @@ void proc1(void) {
 	
 		g_current_test = 1;
 		g_tests_passed = 0;
-	
-		set_process_priority(2, MEDIUM);
-	
-		//for (i = 1; i < NUM_TEST_PROCS; i++, g_current_test++) {
-		//		set_process_priority(g_test_procs[i].m_pid, HIGH);
-		//}
+		
+		release_processor();
 	
 		printf("G021_test: %d/5 OK\n", g_tests_passed);
 		printf("G021_test: %d/5 FAIL\n", 5 - g_tests_passed);
@@ -66,11 +61,18 @@ void proc1(void) {
  *         and then yields the cpu.
  */
 void proc2(void) {
-		printf("test %d OK\n", g_current_test);
-		g_tests_passed++;
+		set_process_priority(g_test_procs[g_current_test].m_pid, HIGH);
+	
+		if (get_process_priority(g_test_procs[g_current_test].m_pid) == HIGH) {
+				printf("G021_test: test %d OK\n", g_current_test);
+				g_tests_passed++;
+		} else {
+				printf("G021_test: test %d FAIL\n", g_current_test);
+		}
 	
 		set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
 	
+		g_current_test++;
 		release_processor();
 	
     while (1) {
@@ -82,11 +84,20 @@ void proc2(void) {
  * @brief:
  */
 void proc3(void) {
-    printf("test %d OK\n", g_current_test);
-		g_tests_passed++;
+		void *mem_blk = request_memory_block();
+	
+		if (mem_blk != NULL) {
+				printf("G021_test: test %d OK\n", g_current_test);
+				g_tests_passed++;
+		} else {
+				printf("G021_test: test %d FAIL\n", g_current_test);
+		}
+		
+		release_memory_block(mem_blk);
 	
 		set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
 	
+		g_current_test++;
 		release_processor();
 	
     while (1) {
@@ -98,11 +109,18 @@ void proc3(void) {
  * @brief:
  */
 void proc4(void) {
-    printf("test %d OK\n", g_current_test);
-		g_tests_passed++;
+		void *mem_blk = request_memory_block();
 	
+		if (release_memory_block(mem_blk) != -1) {
+				printf("G021_test: test %d OK\n", g_current_test);
+				g_tests_passed++;
+		} else {
+				printf("G021_test: test %d FAIL\n", g_current_test);
+		}
+			
 		set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
 	
+		g_current_test++;
 		release_processor();
 	
     while (1) {
@@ -114,11 +132,22 @@ void proc4(void) {
  * @brief:
  */
 void proc5(void) {
-    printf("test %d OK\n", g_current_test);
-		g_tests_passed++;
+    void *mem_blk_1 = request_memory_block();
+		void *mem_blk_2 = request_memory_block();
+	
+		if (mem_blk_1 != NULL && mem_blk_2 != NULL && mem_blk_1 != mem_blk_2) {
+				printf("G021_test: test %d OK\n", g_current_test);
+				g_tests_passed++;
+		} else {
+				printf("G021_test: test %d FAIL\n", g_current_test);
+		}
+		
+		release_memory_block(mem_blk_1);
+		release_memory_block(mem_blk_2);
 	
 		set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
 	
+		g_current_test++;
 		release_processor();
 	
     while (1) {
@@ -130,11 +159,37 @@ void proc5(void) {
  * @brief:
  */
 void proc6(void) {
-    printf("test %d OK\n", g_current_test);
-		g_tests_passed++;
+		void *mem_blk;
+		int i;
+		int rel_val;
+		int passing = 1;
+	
+		for (i = 0; i < 25; i++) {
+				mem_blk = request_memory_block();
+			
+				if (mem_blk == NULL) {
+						passing = 0;
+						break;
+				}
+				
+				rel_val = release_memory_block(mem_blk);
+				
+				if (rel_val == -1) {
+						passing = 0;
+						break;
+				}
+		}
+	
+		if (passing) {
+				printf("G021_test: test %d OK\n", g_current_test);
+				g_tests_passed++;
+		} else {
+				printf("G021_test: test %d FAIL\n", g_current_test);
+		}
 	
 		set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
 	
+		g_current_test++;
 		release_processor();
 	
     while (1) {

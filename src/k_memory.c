@@ -20,7 +20,7 @@ U32 *gp_heap_head; /* Points to the first free memory block in our heap linked l
 
 extern PCB *gp_current_process;
 extern int k_release_processor(void);
-extern PCB *proc_priority_pop_blocked();
+extern PCB *proc_priority_pop_blocked(void);
 extern void proc_priority_push(PCB*);
 
 /**
