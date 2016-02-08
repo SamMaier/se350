@@ -13,13 +13,13 @@
 /* ----- Definitions ----- */
 #define RAM_END_ADDR 0x10008000
 #define MEMORY_BLOCK_SIZE 128
-#define NUM_MEMORY_BLOCKS 4
+#define NUM_MEMORY_BLOCKS 6
 
 /* ----- Variables ----- */
 /* This symbol is defined in the scatter file (see RVCT Linker User Guide) */
 extern unsigned int Image$$RW_IRAM1$$ZI$$Limit;
 extern PCB **gp_pcbs;
-extern PROC_INIT g_proc_table[NUM_TEST_PROCS];
+extern PROC_INIT g_proc_table[NUM_PROCS];
 
 /* ----- Functions ------ */
 void memory_init(void);

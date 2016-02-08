@@ -54,7 +54,6 @@ void memory_init(void)
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 	U32 *previous = NULL;
 	U32 *current;
-
 	int i;
 
 	/* 4 bytes padding */
@@ -62,7 +61,7 @@ void memory_init(void)
 
 	/* allocate memory for pcb pointers   */
 	gp_pcbs = (PCB **)p_end;
-	p_end += NUM_PROCS * sizeof(PCB *);
+	p_end += (((U32)NUM_PROCS) * sizeof(PCB *));
 
 	for ( i = 0; i < NUM_PROCS; i++ ) {
 		gp_pcbs[i] = (PCB *)p_end;
