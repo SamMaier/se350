@@ -254,7 +254,12 @@ int set_process_priority(const int process_id, const int priority) {
     if (process_id <= 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
     if (priority < 0 || priority >= HIDDEN) return RTX_ERR;
 
-    process = proc_priority_pop_proc(gp_pcbs[process_id]);
+		if (process_id == gp_current_process->m_pid) {
+			gp_current_process->m_priority = priority;
+			return RTX_OK;
+		}
+
+		process = proc_priority_pop_proc(gp_pcbs[process_id]);
     process->m_priority = priority;
     proc_priority_push(process);
 

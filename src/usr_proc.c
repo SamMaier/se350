@@ -9,13 +9,15 @@
 #include "rtx.h"
 #include "uart_polling.h"
 #include "usr_proc.h"
-
-#ifdef DEBUG_0
 #include "printf.h"
-#endif /* DEBUG_0 */
 
 /* initialization table item */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
+
+void (*g_test_proc_funcs[])(void) = {&proc1, &proc2, &proc3, &proc4, &proc5, &proc6};
+
+int g_current_test;
+int g_tests_passed;
 
 void set_test_procs() {
     int i;
@@ -23,14 +25,8 @@ void set_test_procs() {
         g_test_procs[i].m_pid=(U32)(i+1);
         g_test_procs[i].m_priority=LOWEST;
         g_test_procs[i].m_stack_size=0x100;
+				g_test_procs[i].mpf_start_pc = g_test_proc_funcs[i];
     }
-
-    g_test_procs[0].mpf_start_pc = &proc1;
-    g_test_procs[1].mpf_start_pc = &proc2;
-    g_test_procs[2].mpf_start_pc = &proc3;
-    g_test_procs[3].mpf_start_pc = &proc4;
-    g_test_procs[4].mpf_start_pc = &proc5;
-    g_test_procs[5].mpf_start_pc = &proc6;
 }
 
 /**
@@ -40,38 +36,29 @@ void set_test_procs() {
  *         6th is printed.
  */
 void proc1(void) {
-    int i = 0;
-    int ret_val = 10;
-    int x = 0;
-    void* memoryAllocs[6];
-
-    while (1) {
-        if (i != 0 && i%5 == 0) {
-            uart1_put_string("\n\r");
-
-            memoryAllocs[(i%30)/5] = request_memory_block();
-            *(U32*)memoryAllocs[(i%30)/5] = (U32)i;
-            *((U8*)memoryAllocs[(i%30)/5] + 127) = (U8)i;
-
-            if (i%30 == 0) {
-                // Releasing out of order for testing
-                release_memory_block(memoryAllocs[4]);
-                release_memory_block(memoryAllocs[2]);
-                release_memory_block(memoryAllocs[1]);
-                release_memory_block(memoryAllocs[0]);
-                release_memory_block(memoryAllocs[5]);
-                release_memory_block(memoryAllocs[3]);
-
-                ret_val = release_processor();
-#ifdef DEBUG_0
-                printf("proc1: ret_val=%d\n", ret_val);
-#endif /* DEBUG_0 */
-            }
-            for ( x = 0; x < 5000; x++); // some artifical delay
-        }
-        uart1_put_char('A' + i%26);
-        i++;
-    }
+		int i;
+	
+		set_process_priority(g_test_procs[0].m_pid, LOWEST);
+	
+    printf("G021_test: START\n");
+		printf("G02_test: total 5 tests\n");
+	
+		g_current_test = 1;
+		g_tests_passed = 0;
+	
+		set_process_priority(2, MEDIUM);
+	
+		//for (i = 1; i < NUM_TEST_PROCS; i++, g_current_test++) {
+		//		set_process_priority(g_test_procs[i].m_pid, HIGH);
+		//}
+	
+		printf("G021_test: %d/5 OK\n", g_tests_passed);
+		printf("G021_test: %d/5 FAIL\n", 5 - g_tests_passed);
+		printf("G021_test: END\n");
+	
+		while (1) {
+				release_processor();
+		}
 }
 
 /**
@@ -79,33 +66,31 @@ void proc1(void) {
  *         and then yields the cpu.
  */
 void proc2(void) {
-    int i = 0;
-    int ret_val = 20;
-    int x = 0;
+		printf("test %d OK\n", g_current_test);
+		g_tests_passed++;
+	
+		set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
+	
+		release_processor();
+	
     while (1) {
-        if (i != 0 && i%5 == 0) {
-            uart1_put_string("\n\r");
-
-            if (i%30 == 0) {
-                ret_val = release_processor();
-#ifdef DEBUG_0
-                printf("proc2: ret_val=%d\n", ret_val);
-#endif /* DEBUG_0 */
-            }
-            for (x = 0; x < 5000; x++); // some artifical delay
-        }
-        uart1_put_char('0' + i%10);
-        i++;
-    }
+				release_processor();
+		}
 }
 
 /**
  * @brief:
  */
 void proc3(void) {
-    int ret_val = 30;
+    printf("test %d OK\n", g_current_test);
+		g_tests_passed++;
+	
+		set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
+	
+		release_processor();
+	
     while (1) {
-        ret_val = release_processor();
+        release_processor();
     }
 }
 
@@ -113,9 +98,15 @@ void proc3(void) {
  * @brief:
  */
 void proc4(void) {
-    int ret_val = 40;
+    printf("test %d OK\n", g_current_test);
+		g_tests_passed++;
+	
+		set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
+	
+		release_processor();
+	
     while (1) {
-        ret_val = release_processor();
+        release_processor();
     }
 }
 
@@ -123,9 +114,15 @@ void proc4(void) {
  * @brief:
  */
 void proc5(void) {
-    int ret_val = 50;
+    printf("test %d OK\n", g_current_test);
+		g_tests_passed++;
+	
+		set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
+	
+		release_processor();
+	
     while (1) {
-        ret_val = release_processor();
+        release_processor();
     }
 }
 
@@ -133,8 +130,14 @@ void proc5(void) {
  * @brief:
  */
 void proc6(void) {
-    int ret_val = 60;
+    printf("test %d OK\n", g_current_test);
+		g_tests_passed++;
+	
+		set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
+	
+		release_processor();
+	
     while (1) {
-        ret_val = release_processor();
+        release_processor();
     }
 }
