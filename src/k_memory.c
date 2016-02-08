@@ -62,15 +62,16 @@ void memory_init(void)
 
 	/* allocate memory for pcb pointers   */
 	gp_pcbs = (PCB **)p_end;
-	p_end += NUM_TEST_PROCS * sizeof(PCB *);
+	p_end += NUM_PROCS * sizeof(PCB *);
 
-	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
+	for ( i = 0; i < NUM_PROCS; i++ ) {
 		gp_pcbs[i] = (PCB *)p_end;
 		p_end += sizeof(PCB);
 	}
 #ifdef DEBUG_0
-	printf("gp_pcbs[0] = 0x%x \n", gp_pcbs[0]);
-	printf("gp_pcbs[1] = 0x%x \n", gp_pcbs[1]);
+	for (i = 0; i < NUM_PROCS; i++) {
+		printf("gp_pcbs[%d] = 0x%x \n", i, gp_pcbs[i]);
+	}
 #endif
 
 	/* prepare for alloc_stack() to allocate memory for stacks */
