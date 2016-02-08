@@ -14,7 +14,7 @@
 #define RTX_OK  0
 
 #define NULL 0
-#define NUM_TEST_PROCS 2
+#define NUM_TEST_PROCS 6
 #define NUM_SYSTEM_PROCS 1
 #define NUM_PROCS NUM_TEST_PROCS + NUM_SYSTEM_PROCS
 

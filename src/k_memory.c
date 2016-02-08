@@ -14,7 +14,7 @@
 /* ----- Global Variables ----- */
 U32 *gp_stack; /* The last allocated stack low address. 8 bytes aligned */
                /* The first stack starts at the RAM high address */
-	       /* stack grows down. Fully decremental stack */
+		       /* stack grows down. Fully decremental stack */
 
 U32 *gp_heap_head; /* Points to the first free memory block in our heap linked list. */
 

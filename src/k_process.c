@@ -91,6 +91,7 @@ PCB *proc_priority_pop_proc(PCB *proc) {
     /* remove and return temp_proc->mp_next */
     found_proc = temp_proc->mp_next;
     temp_proc->mp_next = found_proc->mp_next;
+    found_proc->mp_next = NULL;
     return found_proc;
 }
 
@@ -140,14 +141,14 @@ void process_init()
 
         /* fill out the initialization table */
     set_test_procs();
-		set_system_procs();
+    set_system_procs();
 
-		for (i = 0; i < NUM_SYSTEM_PROCS; i++) {
-				g_proc_table[i].m_pid = g_system_procs[i].m_pid;
+    for (i = 0; i < NUM_SYSTEM_PROCS; i++) {
+        g_proc_table[i].m_pid = g_system_procs[i].m_pid;
         g_proc_table[i].m_priority = g_system_procs[i].m_priority;
         g_proc_table[i].m_stack_size = g_system_procs[i].m_stack_size;
         g_proc_table[i].mpf_start_pc = g_system_procs[i].mpf_start_pc;
-		}
+        }
 
     for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
         g_proc_table[i + NUM_SYSTEM_PROCS].m_pid = g_test_procs[i].m_pid;
