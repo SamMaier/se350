@@ -248,10 +248,10 @@ int k_release_processor(void) {
     return RTX_OK;
 }
 
-int set_process_priority(const int process_id, const int priority) {
+int k_set_process_priority(const int process_id, const int priority) {
     PCB* process;
 
-    if (process_id <= 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
+    if (process_id < NUM_SYS_PROCS || process_id >= NUM_PROCS) return RTX_ERR;
     if (priority < 0 || priority >= HIDDEN) return RTX_ERR;
 
 		if (process_id == gp_current_process->m_pid) {
@@ -265,13 +265,13 @@ int set_process_priority(const int process_id, const int priority) {
 
     /* preempt if the new priority is ready and has a higher priority */
     if (priority < gp_current_process->m_priority && process->m_state != BLOCKED) {
-        k_release_processor();
+        return k_release_processor();
     }
 
     return RTX_OK;
 }
 
-int get_process_priority(const int process_id) {
+int k_get_process_priority(const int process_id) {
     PCB* process;
 
     if (process_id < 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
