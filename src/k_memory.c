@@ -14,7 +14,7 @@
 /* ----- Global Variables ----- */
 U32 *gp_stack; /* The last allocated stack low address. 8 bytes aligned */
                /* The first stack starts at the RAM high address */
-	       /* stack grows down. Fully decremental stack */
+		       /* stack grows down. Fully decremental stack */
 
 U32 *gp_heap_head; /* Points to the first free memory block in our heap linked list. */
 
@@ -54,7 +54,6 @@ void memory_init(void)
 	U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 	U32 *previous = NULL;
 	U32 *current;
-
 	int i;
 
 	/* 4 bytes padding */
@@ -62,19 +61,16 @@ void memory_init(void)
 
 	/* allocate memory for pcb pointers   */
 	gp_pcbs = (PCB **)p_end;
-	p_end += NUM_TEST_PROCS * sizeof(PCB *);
+	p_end += (((U32)NUM_PROCS) * sizeof(PCB *));
 
-	for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
+	for ( i = 0; i < NUM_PROCS; i++ ) {
 		gp_pcbs[i] = (PCB *)p_end;
 		p_end += sizeof(PCB);
 	}
 #ifdef DEBUG_0
-	printf("gp_pcbs[0] = 0x%x \n", gp_pcbs[0]);
-	printf("gp_pcbs[1] = 0x%x \n", gp_pcbs[1]);
-	printf("gp_pcbs[2] = 0x%x \n", gp_pcbs[2]);
-	printf("gp_pcbs[3] = 0x%x \n", gp_pcbs[3]);
-	printf("gp_pcbs[4] = 0x%x \n", gp_pcbs[4]);
-	printf("gp_pcbs[5] = 0x%x \n", gp_pcbs[5]);
+	for (i = 0; i < NUM_PROCS; i++) {
+		printf("gp_pcbs[%d] = 0x%x \n", i, gp_pcbs[i]);
+	}
 #endif
 
 	/* prepare for alloc_stack() to allocate memory for stacks */
