@@ -90,6 +90,7 @@ PCB *proc_priority_pop_proc(PCB *proc) {
     /* remove and return temp_proc->mp_next */
     found_proc = temp_proc->mp_next;
     temp_proc->mp_next = found_proc->mp_next;
+    found_proc->mp_next = NULL;
     return found_proc;
 }
 
