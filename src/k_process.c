@@ -33,7 +33,7 @@ U32 g_switch_flag = 0;          /* whether to continue to run the process before
 /* process initialization table */
 PROC_INIT g_proc_table[NUM_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
-extern PROC_INIT g_system_procs[NUM_SYSTEM_PROCS];
+extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 
 /* process priority queues */
 PCB *g_proc_priority_front[5] = {NULL, NULL, NULL, NULL, NULL};
@@ -141,20 +141,20 @@ void process_init()
 
         /* fill out the initialization table */
     set_test_procs();
-    set_system_procs();
+    set_sys_procs();
 
-    for (i = 0; i < NUM_SYSTEM_PROCS; i++) {
-        g_proc_table[i].m_pid = g_system_procs[i].m_pid;
-        g_proc_table[i].m_priority = g_system_procs[i].m_priority;
-        g_proc_table[i].m_stack_size = g_system_procs[i].m_stack_size;
-        g_proc_table[i].mpf_start_pc = g_system_procs[i].mpf_start_pc;
+    for (i = 0; i < NUM_SYS_PROCS; i++) {
+        g_proc_table[i].m_pid = g_sys_procs[i].m_pid;
+        g_proc_table[i].m_priority = g_sys_procs[i].m_priority;
+        g_proc_table[i].m_stack_size = g_sys_procs[i].m_stack_size;
+        g_proc_table[i].mpf_start_pc = g_sys_procs[i].mpf_start_pc;
         }
 
     for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
-        g_proc_table[i + NUM_SYSTEM_PROCS].m_pid = g_test_procs[i].m_pid;
-        g_proc_table[i + NUM_SYSTEM_PROCS].m_priority = g_test_procs[i].m_priority;
-        g_proc_table[i + NUM_SYSTEM_PROCS].m_stack_size = g_test_procs[i].m_stack_size;
-        g_proc_table[i + NUM_SYSTEM_PROCS].mpf_start_pc = g_test_procs[i].mpf_start_pc;
+        g_proc_table[i + NUM_SYS_PROCS].m_pid = g_test_procs[i].m_pid;
+        g_proc_table[i + NUM_SYS_PROCS].m_priority = g_test_procs[i].m_priority;
+        g_proc_table[i + NUM_SYS_PROCS].m_stack_size = g_test_procs[i].m_stack_size;
+        g_proc_table[i + NUM_SYS_PROCS].mpf_start_pc = g_test_procs[i].mpf_start_pc;
     }
 
     /* initilize exception stack frame (i.e. initial context) for each process */

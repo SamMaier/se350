@@ -6,7 +6,7 @@
 #ifndef SYS_PROC_H_
 #define SYS_PROC_H_
 
-void set_system_procs(void);
+void set_sys_procs(void);
 void null_process(void);
 
 #endif /* SYS_PROC_H_ */
