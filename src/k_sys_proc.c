@@ -18,7 +18,7 @@ PROC_INIT g_system_procs[NUM_SYSTEM_PROCS];
 void set_system_procs() {
     /* null process */
     g_system_procs[0].m_pid = 0;
-    g_system_procs[0].m_priority = 4;
+    g_system_procs[0].m_priority = HIDDEN;
     g_system_procs[0].m_stack_size = 0x100;
     g_system_procs[0].mpf_start_pc = &null_process;
 }
