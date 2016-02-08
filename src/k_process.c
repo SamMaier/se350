@@ -39,7 +39,7 @@ extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 PCB *g_proc_priority_front[5] = {NULL, NULL, NULL, NULL, NULL};
 PCB *g_proc_priority_back[5] = {NULL, NULL, NULL, NULL, NULL};
 
-int is_proc_priority_empty(int priority) {
+int is_proc_priority_empty(const int priority) {
     /* return true if priority is out of bounds */
     if (priority < 0 || priority > 4) return 1;
     return (g_proc_priority_front[priority] == NULL);
@@ -57,7 +57,7 @@ void proc_priority_push(PCB *proc) {
     }
 }
 
-PCB *proc_priority_pop_front(int priority) {
+PCB *proc_priority_pop_front(const int priority) {
     PCB *front_proc;
 
     /* if our queue is empty, return a NULL pointer */
@@ -73,7 +73,7 @@ PCB *proc_priority_pop_front(int priority) {
     return front_proc;
 }
 
-PCB *proc_priority_pop_proc(PCB *proc) {
+PCB *proc_priority_pop_proc(const PCB *proc) {
     PCB *found_proc;
     PCB *temp_proc = g_proc_priority_front[proc->m_priority];
 
@@ -134,8 +134,7 @@ PCB *proc_priority_pop_blocked() {
  * @biref: initialize all processes in the system
  * NOTE: We assume there are only two user processes in the system in this example.
  */
-void process_init()
-{
+void process_init() {
     int i;
     U32 *sp;
 
@@ -184,8 +183,7 @@ void process_init()
  *      No other effect on other global variables.
  */
 
-PCB *scheduler(void)
-{
+PCB *scheduler(void) {
     PCB *old_proc = gp_current_process;
     if (old_proc != NULL) proc_priority_push(old_proc);
 
@@ -201,8 +199,7 @@ PCB *scheduler(void)
  *POST: if gp_current_process was NULL, then it gets set to pcbs[0].
  *      No other effect on other global variables.
  */
-int process_switch(PCB *p_pcb_old)
-{
+int process_switch(PCB *p_pcb_old) {
     PROC_STATE_E state;
 
     state = gp_current_process->m_state;
@@ -255,7 +252,7 @@ int k_release_processor(void)
     return RTX_OK;
 }
 
-int set_process_priority(int process_id, int priority) {
+int set_process_priority(const int process_id, const int priority) {
     PCB* process;
 
     if (process_id <= 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
@@ -273,7 +270,7 @@ int set_process_priority(int process_id, int priority) {
     return RTX_OK;
 }
 
-int get_process_priority(int process_id) {
+int get_process_priority(const int process_id) {
     PCB* process;
 
     if (process_id < 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
