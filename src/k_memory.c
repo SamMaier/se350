@@ -103,11 +103,12 @@ void memory_init(void) {
 */
 
 U32 *alloc_stack(U32 size_b) {
+    U8 numBytesForAllRegisters = 16*4; // 16 registers, 4 bytes a piece
     U32 *sp;
     sp = gp_stack; /* gp_stack is always 8 bytes aligned */
 
     /* update gp_stack */
-    gp_stack = (U32 *)((U8 *)sp - size_b);
+    gp_stack = (U32 *)((U8 *)sp - (size_b + numBytesForAllRegisters));
 
     /* 8 bytes alignement adjustment to exception stack frame */
     if ((U32)gp_stack & 0x04) {
