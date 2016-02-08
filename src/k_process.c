@@ -266,7 +266,7 @@ int set_process_priority(int process_id, int priority) {
     proc_priority_push(process);
 
     /* preempt if the new priority is ready and has a higher priority */
-    if (priority < gp_current_process->m_priority && process->m_state == RDY) {
+    if (priority < gp_current_process->m_priority && process->m_state != BLOCKED) {
         k_release_processor();
     }
 
