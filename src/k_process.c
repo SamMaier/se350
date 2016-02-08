@@ -200,9 +200,7 @@ PCB *scheduler(void) {
  *      No other effect on other global variables.
  */
 int process_switch(PCB *p_pcb_old) {
-    PROC_STATE_E state;
-
-    state = gp_current_process->m_state;
+    PROC_STATE_E state = gp_current_process->m_state;
 
     if (state == NEW) {
         if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
@@ -215,7 +213,6 @@ int process_switch(PCB *p_pcb_old) {
     }
 
     /* The following will only execute if the if block above is FALSE */
-
     if (gp_current_process != p_pcb_old) {
         if (state == RDY){
             if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = RDY;
@@ -234,20 +231,19 @@ int process_switch(PCB *p_pcb_old) {
  * @return RTX_ERR on error and zero on success
  * POST: gp_current_process gets updated to next to run process
  */
-int k_release_processor(void)
-{
-    PCB *p_pcb_old = NULL;
-
-    p_pcb_old = gp_current_process;
+int k_release_processor(void) {
+    PCB *p_pcb_old = gp_current_process;
     gp_current_process = scheduler();
 
-    if ( gp_current_process == NULL  ) {
+    if (gp_current_process == NULL) { // should usually never occur
         gp_current_process = p_pcb_old; // revert back to the old process
         return RTX_ERR;
     }
-    if ( p_pcb_old == NULL ) {
+
+    if (p_pcb_old == NULL) { // this only happens once on initialization
         p_pcb_old = gp_current_process;
     }
+
     process_switch(p_pcb_old);
     return RTX_OK;
 }
