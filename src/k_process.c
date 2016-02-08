@@ -127,7 +127,7 @@ PCB *proc_priority_pop_blocked() {
     }
 
     /* if no blocked process of higher priority is found, return NULL */
-    return proc;
+    return NULL;
 }
 
 /**
