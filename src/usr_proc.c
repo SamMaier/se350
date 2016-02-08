@@ -55,12 +55,12 @@ void proc1(void) {
 
             if (i%30 == 0) {
                 // Releasing out of order for testing
-                // release_memory_block(memoryAllocs[4]);
-                // release_memory_block(memoryAllocs[2]);
-                // release_memory_block(memoryAllocs[1]);
-                // release_memory_block(memoryAllocs[0]);
-                // release_memory_block(memoryAllocs[5]);
-                // release_memory_block(memoryAllocs[3]);
+                release_memory_block(memoryAllocs[4]);
+                release_memory_block(memoryAllocs[2]);
+                release_memory_block(memoryAllocs[1]);
+                release_memory_block(memoryAllocs[0]);
+                release_memory_block(memoryAllocs[5]);
+                release_memory_block(memoryAllocs[3]);
 
                 ret_val = release_processor();
 #ifdef DEBUG_0

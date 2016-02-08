@@ -451,6 +451,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\k_process.c</FilePath>
             </File>
+            <File>
+              <FileName>k_sys_proc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\k_sys_proc.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -919,6 +924,11 @@
               <FileName>k_process.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\k_process.c</FilePath>
+            </File>
+            <File>
+              <FileName>k_sys_proc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\k_sys_proc.c</FilePath>
             </File>
           </Files>
         </Group>
