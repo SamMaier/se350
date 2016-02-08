@@ -49,4 +49,7 @@ extern int k_release_memory_block(void *);
 #define release_memory_block(p_mem_blk) _release_memory_block((U32)k_release_memory_block, p_mem_blk)
 extern int _release_memory_block(U32 p_func, void *p_mem_blk) __SVC_0;
 
+extern int set_process_priority(int, int);
+extern int get_process_priority(int);
+
 #endif /* !RTX_H_ */
