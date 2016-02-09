@@ -1,22 +1,16 @@
-/**
-* @file:   k_memory.c
-* @brief:  kernel memory managment routines
-* @author: Yiqing Huang
-* @date:   2014/01/17
-*/
-
 #include "k_memory.h"
 
 #ifdef DEBUG_0
 #include "printf.h"
-#endif /* ! DEBUG_0 */
+#endif
 
-/* ----- Global Variables ----- */
-U32 *gp_stack;  /* The last allocated stack low address. 8 bytes aligned */
-                /* The first stack starts at the RAM high address */
-                /* stack grows down. Fully decremental stack */
+/* global variables */
 
-U32 *gp_heap_head; /* Points to the first free memory block in our heap linked list. */
+/* The last allocated stack low address. 8 bytes aligned
+The first stack starts at the RAM high address
+stack grows down. Fully decremental stack */
+U32 *gp_stack;
+U32 *gp_heap_head; // points to the first free memory block in our heap linked list
 
 extern PCB *gp_current_process;
 extern int k_release_processor(void);
@@ -31,9 +25,7 @@ extern void proc_priority_push(PCB*);
           |---------------------------|
           |    Proc 2 STACK           |
           |---------------------------|<--- gp_stack
-          |                           |
           |        HEAP               |
-          |                           |
           |---------------------------|<--- p_end
           |        PCB 2              |
           |---------------------------|
@@ -46,7 +38,6 @@ extern void proc_priority_push(PCB*);
           |Image$$RW_IRAM1$$ZI$$Limit |
           |...........................|
           |       RTX  Image          |
-          |                           |
 0x10000000+---------------------------+ Low Address
 */
 
@@ -56,8 +47,7 @@ void memory_init(void) {
     U32 *current;
     int i;
 
-    /* 4 bytes padding */
-    p_end += 4;
+    p_end += 4; // 4 bytes padding
 
     /* allocate memory for pcb pointers   */
     gp_pcbs = (PCB **)p_end;
@@ -74,7 +64,6 @@ void memory_init(void) {
 #endif
 
     /* prepare for alloc_stack() to allocate memory for stacks */
-
     gp_stack = (U32 *)RAM_END_ADDR;
     if ((U32)gp_stack & 0x04) { /* 8 bytes alignment */
         --gp_stack;
@@ -85,7 +74,6 @@ void memory_init(void) {
         Note: Stacks have not been allocated yet, we are assuming that
         we won't run into the stack memory.
     */
-
     current = (U32*)p_end + 4; // 4 byte padding
 
     for (i = 0; i < NUM_MEMORY_BLOCKS; i++, current = (U32*)((U8*)current + MEMORY_BLOCK_SIZE)) {
@@ -96,16 +84,16 @@ void memory_init(void) {
 }
 
 /**
-* @brief: allocate stack for a process, align to 8 bytes boundary
-* @param: size, stack size in bytes
-* @return: The top of the stack (i.e. high address)
-* POST:  gp_stack is updated.
+* Allocate stack for a process, align to 8 bytes boundary
+*
+* @param size_b stack size in bytes
+* @return the top of the stack (i.e. high address)
+* POST: gp_stack is updated
 */
-
 U32 *alloc_stack(U32 size_b) {
     U8 numBytesForAllRegisters = 16*4; // 16 registers, 4 bytes a piece
     U32 *sp;
-    sp = gp_stack; /* gp_stack is always 8 bytes aligned */
+    sp = gp_stack; // always 8 bytes aligned
 
     /* update gp_stack */
     gp_stack = (U32 *)((U8 *)sp - (size_b + numBytesForAllRegisters));
@@ -118,9 +106,11 @@ U32 *alloc_stack(U32 size_b) {
 }
 
 /**
- * @brief: gets memory block of size MEMORY_BLOCK_SIZE
- * @return: Pointer to this block. NULL if no blocks available.
- * POST:  gp_stack is updated.
+ * Gets a pointer to a memory block of size MEMORY_BLOCK_SIZE if there is block
+ * available in the heap.
+ *
+ * @return pointer to this block. NULL if no blocks available
+ * POST: gp_stack is updated
  */
 void *k_request_memory_block(void) {
     void* returnVal;
@@ -152,6 +142,14 @@ void *k_request_memory_block(void) {
     return returnVal;
 }
 
+/**
+ * Return a memory block to the heap. If there is a blocked process in the
+ * priority queue with a higher priority than the current process, it is
+ * preempted.
+ *
+ * @param p_mem_blk pointer to the reclaimed memory block
+ * @return 0 on success
+ */
 int k_release_memory_block(void *p_mem_blk) {
     PCB* blocked_proc = proc_priority_pop_blocked();
     U32* head_value = gp_heap_head;
