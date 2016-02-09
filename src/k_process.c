@@ -1,18 +1,3 @@
-/**
- * @file:   k_process.c
- * @brief:  process management C file
- * @author: Yiqing Huang
- * @author: Thomas Reidemeister
- * @date:   2014/02/28
- * NOTE: The example code shows one way of implementing context switching.
- *       The code only has minimal sanity check. There is no stack overflow check.
- *       The implementation assumes only two simple user processes and NO HARDWARE INTERRUPTS.
- *       The purpose is to show how context switch could be done under stated assumptions.
- *       These assumptions are not true in the required RTX Project!!!
- *       If you decide to use this piece of code, you need to understand the assumptions and
- *       the limitations.
- */
-
 #include <LPC17xx.h>
 #include <system_LPC17xx.h>
 #include "uart_polling.h"
@@ -20,15 +5,16 @@
 
 #ifdef DEBUG_0
 #include "printf.h"
-#endif /* DEBUG_0 */
+#endif
 
-/* ----- Global Variables ----- */
-PCB **gp_pcbs;                  /* array of pcbs */
-PCB *gp_current_process = NULL; /* always point to the current RUN process */
+/* global variables */
+PCB **gp_pcbs; // array of pcbs
+PCB *gp_current_process = NULL; // always point to the current RUN process
 
-U32 g_switch_flag = 0;          /* whether to continue to run the process before the UART receive interrupt */
-                                /* 1 means to switch to another process, 0 means to continue the current process */
-                                /* this value will be set by UART handler */
+/* whether to continue to run the process before the UART receive interrupt
+1 means to switch to another process, 0 means to continue the current process
+this value will be set by UART handler */
+U32 g_switch_flag = 0;
 
 /* process initialization table */
 PROC_INIT g_proc_table[NUM_PROCS];
@@ -39,12 +25,14 @@ extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 PCB *g_proc_priority_front[5] = {NULL, NULL, NULL, NULL, NULL};
 PCB *g_proc_priority_back[5] = {NULL, NULL, NULL, NULL, NULL};
 
+/* check if a given priority has no processes */
 int is_proc_priority_empty(const int priority) {
     /* return true if priority is out of bounds */
     if (priority < 0 || priority > 4) return 1;
     return (g_proc_priority_front[priority] == NULL);
 }
 
+/* push a given process onto the priority queue */
 void proc_priority_push(PCB *proc) {
     if (is_proc_priority_empty(proc->m_priority)) {
         /* if queue is empty, set both the front and back to proc */
@@ -57,6 +45,7 @@ void proc_priority_push(PCB *proc) {
     }
 }
 
+/* get the next process of a given priority. Only used internally */
 PCB *proc_priority_pop_front(const int priority) {
     PCB *front_proc;
 
@@ -73,6 +62,7 @@ PCB *proc_priority_pop_front(const int priority) {
     return front_proc;
 }
 
+/* pop a process from anywhere in the priority queue */
 PCB *proc_priority_pop_proc(const PCB *proc) {
     PCB *found_proc;
     PCB *temp_proc = g_proc_priority_front[proc->m_priority];
@@ -95,13 +85,16 @@ PCB *proc_priority_pop_proc(const PCB *proc) {
     return found_proc;
 }
 
+/* pop the highest-priority ready process */
 PCB *proc_priority_pop_ready() {
     int priority;
     PCB *proc = NULL;
 
+    /* iterate through all priorities */
     for (priority = 0; priority < 5; priority++) {
         proc = g_proc_priority_front[priority];
 
+        /* for a given priority, try finding a non-blocked process */
         while (proc != NULL) {
             if (proc->m_state == BLOCKED) proc = proc->mp_next;
             else return proc_priority_pop_proc(proc);
@@ -109,19 +102,22 @@ PCB *proc_priority_pop_ready() {
     }
 
     /* should never reach here, NULL process should always be returned */
-    return proc;
+    return NULL;
 }
 
+/* pop the highest-priority blocked process that should preempt the current process */
 PCB *proc_priority_pop_blocked() {
     int priority;
     int max_priority = gp_current_process->m_priority;
     PCB *proc = NULL;
 
+    /* iterate through all priorities higher than the current process*/
     for (priority = 0; priority < max_priority; priority++) {
         proc = g_proc_priority_front[priority];
 
+        /* for a given priority, try finding a blocked process */
         while (proc != NULL) {
-            if (proc->m_state == RDY) proc = proc->mp_next;
+            if (proc->m_state != BLOCKED) proc = proc->mp_next;
             else return proc_priority_pop_proc(proc);
         }
     }
@@ -130,25 +126,25 @@ PCB *proc_priority_pop_blocked() {
     return NULL;
 }
 
-/**
- * @biref: initialize all processes in the system
- * NOTE: We assume there are only two user processes in the system in this example.
+/** Initialize all processes in the system
  */
 void process_init() {
     int i;
     U32 *sp;
 
-        /* fill out the initialization table */
+    /* fill out the initialization table */
     set_test_procs();
     set_sys_procs();
 
+    /* initialize system processes */
     for (i = 0; i < NUM_SYS_PROCS; i++) {
         g_proc_table[i].m_pid = g_sys_procs[i].m_pid;
         g_proc_table[i].m_priority = g_sys_procs[i].m_priority;
         g_proc_table[i].m_stack_size = g_sys_procs[i].m_stack_size;
         g_proc_table[i].mpf_start_pc = g_sys_procs[i].mpf_start_pc;
-        }
+    }
 
+    /* initialize test processes */
     for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
         g_proc_table[i + NUM_SYS_PROCS].m_pid = g_test_procs[i].m_pid;
         g_proc_table[i + NUM_SYS_PROCS].m_priority = g_test_procs[i].m_priority;
@@ -176,18 +172,17 @@ void process_init() {
     }
 }
 
-/*@brief: scheduler, pick the pid of the next to run process
- *@return: PCB pointer of the next to run process
- *         NULL if error happens
- *POST: if gp_current_process was NULL, then it gets set to pcbs[0].
- *      No other effect on other global variables.
+/** Choose which queued process to run next by popping the next ready process
+ * from the priority queue.
+ *
+ * @return global pointer to current process
  */
-
 PCB *scheduler(void) {
     PCB *old_proc = gp_current_process;
     if (old_proc != NULL) proc_priority_push(old_proc);
 
     gp_current_process = proc_priority_pop_ready();
+    /* return PCB pointer of the next to run process, NULL if error happens */
     return gp_current_process;
 }
 
@@ -226,10 +221,13 @@ int process_switch(PCB *p_pcb_old) {
     }
     return RTX_OK;
 }
+
 /**
- * @brief release_processor().
- * @return RTX_ERR on error and zero on success
- * POST: gp_current_process gets updated to next to run process
+ * Remove the current process from the processor. A new process is determined
+ * using the scheduler, and the old process is queued.
+
+ * @return 0 on success, -1 on error
+ * POST gp_current_process gets updated to next to run process
  */
 int k_release_processor(void) {
     PCB *p_pcb_old = gp_current_process;
@@ -248,18 +246,28 @@ int k_release_processor(void) {
     return RTX_OK;
 }
 
+/**
+ * Set the priority of a specified process. The process will be pushed back onto
+ * the priority queue. If the process is unblocked and the new priority is
+ * higher than the current process priority, the specified process will preempt
+ * the current process.
+ *
+ * @param process_id process
+ * @param priority
+ * @return 0 if success, -1 if error
+ */
 int k_set_process_priority(const int process_id, const int priority) {
     PCB* process;
 
     if (process_id < NUM_SYS_PROCS || process_id >= NUM_PROCS) return RTX_ERR;
     if (priority < 0 || priority >= HIDDEN) return RTX_ERR;
 
-		if (process_id == gp_current_process->m_pid) {
-			gp_current_process->m_priority = priority;
-			return RTX_OK;
-		}
+    if (process_id == gp_current_process->m_pid) {
+        gp_current_process->m_priority = priority;
+        return RTX_OK;
+    }
 
-		process = proc_priority_pop_proc(gp_pcbs[process_id]);
+    process = proc_priority_pop_proc(gp_pcbs[process_id]);
     process->m_priority = priority;
     proc_priority_push(process);
 
@@ -271,6 +279,10 @@ int k_set_process_priority(const int process_id, const int priority) {
     return RTX_OK;
 }
 
+/**
+ * @param process_id
+ * @return priority of the process or -1 if error
+ */
 int k_get_process_priority(const int process_id) {
     PCB* process;
 
