@@ -7,6 +7,11 @@
 #include "printf.h"
 #endif
 
+typedef struct {
+    PCB* front[5] = {NULL, NULL, NULL, NULL, NULL};
+    PCB* back[5] = {NULL, NULL, NULL, NULL, NULL};
+} PQ;
+
 /* global variables */
 PCB **gp_pcbs; // array of pcbs
 PCB *gp_current_process = NULL; // always point to the current RUN process
@@ -22,53 +27,53 @@ extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 
 /* process priority queues */
-PCB *g_proc_priority_front[5] = {NULL, NULL, NULL, NULL, NULL};
-PCB *g_proc_priority_back[5] = {NULL, NULL, NULL, NULL, NULL};
+PQ *gp_blocked_pq;
+PQ *gp_ready_pq;
 
 /* check if a given priority has no processes */
-int is_proc_priority_empty(const int priority) {
+int pq_is_priority_empty(const PQ* pq, const int priority) {
     /* return true if priority is out of bounds */
     if (priority < 0 || priority > 4) return 1;
-    return (g_proc_priority_front[priority] == NULL);
+    return pq->front[priority] == NULL;
 }
 
 /* push a given process onto the priority queue */
-void proc_priority_push(PCB *proc) {
-    if (is_proc_priority_empty(proc->m_priority)) {
+void pq_push(PQ* pq, const PCB* proc) {
+    int priority = proc->m_priority;
+    if (pq_is_priority_empty(pq, priority)) {
         /* if queue is empty, set both the front and back to proc */
-        g_proc_priority_front[proc->m_priority] = proc;
-        g_proc_priority_back[proc->m_priority] = proc;
+        pq->front[priority] = proc;
+        pq->back[priority] = proc;
     } else {
         /* if queue is not empty, add proc to the back of the queue */
-        g_proc_priority_back[proc->m_priority]->mp_next = proc;
-        g_proc_priority_back[proc->m_priority] = proc;
+        pq->back[priority]->mp_next = proc;
+        pq->back[priority] = proc;
     }
 }
 
 /* get the next process of a given priority. Only used internally */
-PCB *proc_priority_pop_front(const int priority) {
-    PCB *front_proc;
+PCB* pq_pop_front(PQ* pq, const int priority) {
+    PCB* front_proc;
 
     /* if our queue is empty, return a NULL pointer */
-    if (is_proc_priority_empty(priority)) return NULL;
+    if (pq_is_priority_empty(pq, priority)) return NULL;
 
-    front_proc = g_proc_priority_front[priority];
-    g_proc_priority_front[priority] = front_proc->mp_next;
+    front_proc = pq->front[priority];
+    pq->front[priority] = front_proc->mp_next;
 
     /* if queue only had 1 proc, it is now empty */
-    if (g_proc_priority_front[priority] == NULL) g_proc_priority_back[priority] = NULL;
+    if (pq->front[priority] == NULL) pq->back[priority] = NULL;
 
     front_proc->mp_next = NULL;
     return front_proc;
 }
 
-/* pop a process from anywhere in the priority queue */
-PCB *proc_priority_pop_proc(const PCB *proc) {
-    PCB *found_proc;
-    PCB *temp_proc = g_proc_priority_front[proc->m_priority];
+PCB* pq_pop_PCB(PQ* pq, const PCB* proc) {
+    PCB* found_proc;
+    PCB* temp_proc = pq->front[proc->m_priority];
 
     /* proc is at the front of the queue */
-    if (temp_proc == proc) return proc_priority_pop_front(proc->m_priority);
+    if (temp_proc == proc) return pq_pop_front(pq, proc->m_priority);
 
     /* traverse our queue till we find proc */
     while (temp_proc != NULL && temp_proc->mp_next != NULL && temp_proc->mp_next != proc) {
@@ -85,45 +90,16 @@ PCB *proc_priority_pop_proc(const PCB *proc) {
     return found_proc;
 }
 
-/* pop the highest-priority ready process */
-PCB *proc_priority_pop_ready() {
+PCB* pq_pop(PQ* pq) {
     int priority;
-    PCB *proc = NULL;
+    PCB* proc = NULL;
 
-    /* iterate through all priorities */
     for (priority = 0; priority < 5; priority++) {
-        proc = g_proc_priority_front[priority];
-
-        /* for a given priority, try finding a non-blocked process */
-        while (proc != NULL) {
-            if (proc->m_state == BLOCKED) proc = proc->mp_next;
-            else return proc_priority_pop_proc(proc);
-        }
+        proc = pq->front[priority];
+        if (proc != NULL) return pq_pop_PCB(pq, proc);
     }
 
-    /* should never reach here, NULL process should always be returned */
-    return NULL;
-}
-
-/* pop the highest-priority blocked process that should preempt the current process */
-PCB *proc_priority_pop_blocked() {
-    int priority;
-    int max_priority = gp_current_process->m_priority;
-    PCB *proc = NULL;
-
-    /* iterate through all priorities higher than the current process*/
-    for (priority = 0; priority < max_priority; priority++) {
-        proc = g_proc_priority_front[priority];
-
-        /* for a given priority, try finding a blocked process */
-        while (proc != NULL) {
-            if (proc->m_state != BLOCKED) proc = proc->mp_next;
-            else return proc_priority_pop_proc(proc);
-        }
-    }
-
-    /* if no blocked process of higher priority is found, return NULL */
-    return NULL;
+    return NULL; // impossible - should return NULL process first
 }
 
 /** Initialize all processes in the system
@@ -168,7 +144,7 @@ void process_init() {
         }
         (gp_pcbs[i])->mp_sp = sp;
 
-        proc_priority_push(gp_pcbs[i]);
+        pq_push(gp_ready_pq, gp_pcbs[i]);
     }
 }
 
@@ -179,9 +155,9 @@ void process_init() {
  */
 PCB *scheduler(void) {
     PCB *old_proc = gp_current_process;
-    if (old_proc != NULL) proc_priority_push(old_proc);
+    if (old_proc != NULL) pq_push(gp_ready_pq, old_proc);
 
-    gp_current_process = proc_priority_pop_ready();
+    gp_current_process = pq_pop(gp_ready_pq);
     /* return PCB pointer of the next to run process, NULL if error happens */
     return gp_current_process;
 }
@@ -267,9 +243,9 @@ int k_set_process_priority(const int process_id, const int priority) {
         return RTX_OK;
     }
 
-    process = proc_priority_pop_proc(gp_pcbs[process_id]);
+    process = pq_pop_PCB(gp_ready_pq, gp_pcbs[process_id]);
     process->m_priority = priority;
-    proc_priority_push(process);
+    pq_push(gp_ready_pq, process);
 
     /* preempt if the new priority is ready and has a higher priority */
     if (priority < gp_current_process->m_priority && process->m_state != BLOCKED) {
