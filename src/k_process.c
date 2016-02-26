@@ -68,6 +68,7 @@ PCB* pq_pop_front(PQ* pq, const int priority) {
     return front_proc;
 }
 
+/* pop a specific process */
 PCB* pq_pop_PCB(PQ* pq, const PCB* proc) {
     PCB* found_proc;
     PCB* temp_proc = pq->front[proc->m_priority];
@@ -90,6 +91,7 @@ PCB* pq_pop_PCB(PQ* pq, const PCB* proc) {
     return found_proc;
 }
 
+/* pop the first, highest-priority process */
 PCB* pq_pop(PQ* pq) {
     int priority;
     PCB* proc = NULL;
@@ -102,15 +104,21 @@ PCB* pq_pop(PQ* pq) {
     return NULL; // impossible - should return NULL process first
 }
 
-/** convenience functions, useful for external calls
- */
-
+/* convenience functions, useful for external calls */
 PCB* pq_pop_ready() {
     return pq_pop(gp_ready_pq);
 }
 
 PCB* pq_pop_blocked() {
     return pq_pop(gp_blocked_pq);
+}
+
+PCB* pq_pop_ready(const PCB* proc) {
+    return pq_pop_PCB(gp_ready_pq, proc);
+}
+
+PCB* pq_pop_blocked(const PCB* proc) {
+    return pq_pop_PCB(gp_blocked_pq, proc);
 }
 
 void pq_push_ready(const PCB* proc) {
@@ -121,8 +129,7 @@ void pq_push_blocked(const PCB* proc) {
     pq_push(gp_blocked_pq, proc);
 }
 
-/** Initialize all processes in the system
- */
+/* initialize all processes in the system */
 void process_init() {
     int i;
     U32 *sp;
@@ -262,7 +269,7 @@ int k_set_process_priority(const int process_id, const int priority) {
         return RTX_OK;
     }
 
-    process = pq_pop_PCB(gp_ready_pq, gp_pcbs[process_id]);
+    process = pq_ready_pop(gp_pcbs[process_id]);
     process->m_priority = priority;
     pq_push_ready(process);
 
