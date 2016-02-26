@@ -96,10 +96,29 @@ PCB* pq_pop(PQ* pq) {
 
     for (priority = 0; priority < 5; priority++) {
         proc = pq->front[priority];
-        if (proc != NULL) return pq_pop_PCB(pq, proc);
+        if (proc != NULL) return pq_pop_front(pq, priority);
     }
 
     return NULL; // impossible - should return NULL process first
+}
+
+/** convenience functions, useful for external calls
+ */
+
+PCB* pq_pop_ready() {
+    return pq_pop(gp_ready_pq);
+}
+
+PCB* pq_pop_blocked() {
+    return pq_pop(gp_blocked_pq);
+}
+
+void pq_push_ready(const PCB* proc) {
+    pq_push(gp_ready_pq, proc);
+}
+
+void pq_push_blocked(const PCB* proc) {
+    pq_push(gp_blocked_pq, proc);
 }
 
 /** Initialize all processes in the system
@@ -144,7 +163,7 @@ void process_init() {
         }
         (gp_pcbs[i])->mp_sp = sp;
 
-        pq_push(gp_ready_pq, gp_pcbs[i]);
+        pq_push_ready(gp_pcbs[i]);
     }
 }
 
@@ -155,9 +174,9 @@ void process_init() {
  */
 PCB *scheduler(void) {
     PCB *old_proc = gp_current_process;
-    if (old_proc != NULL) pq_push(gp_ready_pq, old_proc);
+    if (old_proc != NULL) pq_push_ready(old_proc);
 
-    gp_current_process = pq_pop(gp_ready_pq);
+    gp_current_process = pq_pop_ready();
     /* return PCB pointer of the next to run process, NULL if error happens */
     return gp_current_process;
 }
@@ -245,7 +264,7 @@ int k_set_process_priority(const int process_id, const int priority) {
 
     process = pq_pop_PCB(gp_ready_pq, gp_pcbs[process_id]);
     process->m_priority = priority;
-    pq_push(gp_ready_pq, process);
+    pq_push_ready(process);
 
     /* preempt if the new priority is ready and has a higher priority */
     if (priority < gp_current_process->m_priority && process->m_state != BLOCKED) {

@@ -14,8 +14,8 @@ U32 *gp_heap_head; // points to the first free memory block in our heap linked l
 
 extern PCB *gp_current_process;
 extern int k_release_processor(void);
-extern PCB *proc_priority_pop_blocked(void);
-extern void proc_priority_push(PCB*);
+extern PCB* pq_pop_blocked(void);
+extern void pq_push_blocked(PCB*);
 
 /**
  * @brief: Initialize RAM as follows:
@@ -151,7 +151,7 @@ void *k_request_memory_block(void) {
  * @return 0 on success
  */
 int k_release_memory_block(void *p_mem_blk) {
-    PCB* blocked_proc = proc_priority_pop_blocked();
+    PCB* blocked_proc = pq_pop_blocked();
     U32* head_value = gp_heap_head;
 #ifdef DEBUG_0
     printf("k_release_memory_block: releasing block @ 0x%x\n", p_mem_blk);
@@ -162,7 +162,7 @@ int k_release_memory_block(void *p_mem_blk) {
     /* preempt the current process if a blocked process has a higher priority */
     if (blocked_proc != NULL) {
         blocked_proc->m_state = RDY;
-        proc_priority_push(blocked_proc);
+        pq_push_blocked(blocked_proc);
         k_release_processor();
     }
 
