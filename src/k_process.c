@@ -209,7 +209,7 @@ int process_switch(PCB *p_pcb_old) {
 
     if (state == NEW) {
         if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
-            if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = RDY;
+            if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = READY;
             p_pcb_old->mp_sp = (U32 *) __get_MSP();
         }
         gp_current_process->m_state = RUN;
@@ -219,8 +219,8 @@ int process_switch(PCB *p_pcb_old) {
 
     /* The following will only execute if the if block above is FALSE */
     if (gp_current_process != p_pcb_old) {
-        if (state == RDY){
-            if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = RDY;
+        if (state == READY){
+            if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = READY;
             p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
             gp_current_process->m_state = RUN;
             __set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack
@@ -279,15 +279,11 @@ int k_set_process_priority(const int process_id, const int priority) {
 
     // TODO: make this generic?
     process = pq_pop_PCB_ready(gp_pcbs[process_id]);
-    if (process == NULL) {
-        process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
-    }
+    if (process == NULL) process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
+
     process->m_priority = priority;
-    if (process->m_state == BLOCKED) {
-        pq_push_blocked(process);
-    } else if (process->m_state == READY) {
-        pq_push_ready(process);
-    }
+    if (process->m_state == BLOCKED) pq_push_blocked(process);
+    else if (process->m_state == READY) pq_push_ready(process);
 
     /* preempt if the new priority is ready and has a higher priority */
     if (priority < gp_current_process->m_priority && process->m_state != BLOCKED) {

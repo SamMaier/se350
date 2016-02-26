@@ -161,7 +161,7 @@ int k_release_memory_block(void *p_mem_blk) {
 
     /* preempt the current process if a blocked process has a higher priority */
     if (blocked_proc != NULL) {
-        blocked_proc->m_state = RDY;
+        blocked_proc->m_state = READY;
         pq_push_blocked(blocked_proc);
         k_release_processor();
     }
