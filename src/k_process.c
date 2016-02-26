@@ -30,10 +30,12 @@ extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 PQ *gp_blocked_pq;
 PQ *gp_ready_pq;
 
-gp_blocked_pq->front = {NULL, NULL, NULL, NULL, NULL};
-gp_blocked_pq->back = {NULL, NULL, NULL, NULL, NULL};
-gp_ready_pq->front = {NULL, NULL, NULL, NULL, NULL};
-gp_ready_pq->back = {NULL, NULL, NULL, NULL, NULL};
+for (int i = 0; i < 5; i++) {
+    gp_blocked_pq->front[i] = NULL;
+    gp_blocked_pq->back[i] = NULL;
+    gp_ready_pq->front[i] = NULL;
+    gp_ready_pq->back[i] = NULL;
+}
 
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
@@ -110,6 +112,14 @@ PCB* pq_pop(PQ* pq) {
 }
 
 /* convenience functions, useful for external calls */
+void pq_push_ready(PCB* proc) {
+    pq_push(gp_ready_pq, proc);
+}
+
+void pq_push_blocked(PCB* proc) {
+    pq_push(gp_blocked_pq, proc);
+}
+
 PCB* pq_pop_ready() {
     return pq_pop(gp_ready_pq);
 }
@@ -124,14 +134,6 @@ PCB* pq_pop_PCB_ready(const PCB* proc) {
 
 PCB* pq_pop_PCB_blocked(const PCB* proc) {
     return pq_pop_PCB(gp_blocked_pq, proc);
-}
-
-void pq_push_ready(const PCB* proc) {
-    pq_push(gp_ready_pq, proc);
-}
-
-void pq_push_blocked(const PCB* proc) {
-    pq_push(gp_blocked_pq, proc);
 }
 
 /* initialize all processes in the system */
