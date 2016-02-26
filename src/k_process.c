@@ -8,8 +8,8 @@
 #endif
 
 typedef struct {
-    PCB* front[5] = {NULL, NULL, NULL, NULL, NULL};
-    PCB* back[5] = {NULL, NULL, NULL, NULL, NULL};
+    PCB* front[5];
+    PCB* back[5];
 } PQ;
 
 /* global variables */
@@ -30,6 +30,11 @@ extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 PQ *gp_blocked_pq;
 PQ *gp_ready_pq;
 
+gp_blocked_pq->front = {NULL, NULL, NULL, NULL, NULL};
+gp_blocked_pq->back = {NULL, NULL, NULL, NULL, NULL};
+gp_ready_pq->front = {NULL, NULL, NULL, NULL, NULL};
+gp_ready_pq->back = {NULL, NULL, NULL, NULL, NULL};
+
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
     /* return true if priority is out of bounds */
@@ -38,7 +43,7 @@ int pq_is_priority_empty(const PQ* pq, const int priority) {
 }
 
 /* push a given process onto the priority queue */
-void pq_push(PQ* pq, const PCB* proc) {
+void pq_push(PQ* pq, PCB* proc) {
     int priority = proc->m_priority;
     if (pq_is_priority_empty(pq, priority)) {
         /* if queue is empty, set both the front and back to proc */
@@ -113,11 +118,11 @@ PCB* pq_pop_blocked() {
     return pq_pop(gp_blocked_pq);
 }
 
-PCB* pq_pop_ready(const PCB* proc) {
+PCB* pq_pop_PCB_ready(const PCB* proc) {
     return pq_pop_PCB(gp_ready_pq, proc);
 }
 
-PCB* pq_pop_blocked(const PCB* proc) {
+PCB* pq_pop_PCB_blocked(const PCB* proc) {
     return pq_pop_PCB(gp_blocked_pq, proc);
 }
 
@@ -269,7 +274,7 @@ int k_set_process_priority(const int process_id, const int priority) {
         return RTX_OK;
     }
 
-    process = pq_ready_pop(gp_pcbs[process_id]);
+    process = pq_pop_PCB_ready(gp_pcbs[process_id]);
     process->m_priority = priority;
     pq_push_ready(process);
 
