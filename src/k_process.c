@@ -277,9 +277,17 @@ int k_set_process_priority(const int process_id, const int priority) {
         return RTX_OK;
     }
 
+    // TODO: make this generic?
     process = pq_pop_PCB_ready(gp_pcbs[process_id]);
+    if (process == NULL) {
+        process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
+    }
     process->m_priority = priority;
-    pq_push_ready(process);
+    if (process->m_state == BLOCKED) {
+        pq_push_blocked(process);
+    } else if (process->m_state == READY) {
+        pq_push_ready(process);
+    }
 
     /* preempt if the new priority is ready and has a higher priority */
     if (priority < gp_current_process->m_priority && process->m_state != BLOCKED) {
