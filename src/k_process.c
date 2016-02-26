@@ -30,13 +30,6 @@ extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 PQ *gp_blocked_pq;
 PQ *gp_ready_pq;
 
-for (int i = 0; i < 5; i++) {
-    gp_blocked_pq->front[i] = NULL;
-    gp_blocked_pq->back[i] = NULL;
-    gp_ready_pq->front[i] = NULL;
-    gp_ready_pq->back[i] = NULL;
-}
-
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
     /* return true if priority is out of bounds */
@@ -144,6 +137,14 @@ void process_init() {
     /* fill out the initialization table */
     set_test_procs();
     set_sys_procs();
+
+    /* initialize priority queues */
+    for (i = 0; i < 5; i++) {
+        gp_blocked_pq->front[i] = NULL;
+        gp_blocked_pq->back[i] = NULL;
+        gp_ready_pq->front[i] = NULL;
+        gp_ready_pq->back[i] = NULL;
+    }
 
     /* initialize system processes */
     for (i = 0; i < NUM_SYS_PROCS; i++) {
