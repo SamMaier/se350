@@ -209,9 +209,29 @@ int process_switch(PCB *p_pcb_old) {
 
     if (state == NEW) {
         if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
-            if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = READY;
+            switch(p_pcb_old->m_state) {
+            case RUN:
+            case READY:
+                    p_pcb_old->m_state = READY;
+                    break;
+            case BLOCKED:
+                    // Don't set state to READY
+                    break;
+            case NEW:
+                    #ifdef DEBUG_0
+                    printf("process_switch: process has state NEW but shouldn't\n");
+                    #endif
+                    break;
+            default:
+                    #ifdef DEBUG_0
+                    printf("process_switch: unknown state\n");
+                    #endif
+                    break;
+            };
+
             p_pcb_old->mp_sp = (U32 *) __get_MSP();
         }
+
         gp_current_process->m_state = RUN;
         __set_MSP((U32) gp_current_process->mp_sp);
         __rte();  // pop exception stack frame from the stack for a new processes
@@ -220,7 +240,26 @@ int process_switch(PCB *p_pcb_old) {
     /* The following will only execute if the if block above is FALSE */
     if (gp_current_process != p_pcb_old) {
         if (state == READY){
-            if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = READY;
+            switch(p_pcb_old->m_state) {
+            case RUN:
+            case READY:
+                    p_pcb_old->m_state = READY;
+                    break;
+            case BLOCKED:
+                    // Don't set state to READY
+                    break;
+            case NEW:
+                    #ifdef DEBUG_0
+                    printf("process_switch: process has state NEW but shouldn't\n");
+                    #endif
+                    break;
+            default:
+                    #ifdef DEBUG_0
+                    printf("process_switch: unknown state\n");
+                    #endif
+                    break;
+            };
+
             p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
             gp_current_process->m_state = RUN;
             __set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack
@@ -274,8 +313,7 @@ int k_set_process_priority(const int process_id, const int priority) {
 
     if (process_id == gp_current_process->m_pid) {
         gp_current_process->m_priority = priority;
-				// TODO: preempt here
-        return RTX_OK;
+        return k_release_processor();
     }
 
     // TODO: make this generic?
@@ -283,15 +321,28 @@ int k_set_process_priority(const int process_id, const int priority) {
     if (process == NULL) process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
 
     process->m_priority = priority;
-    if (process->m_state == BLOCKED) pq_push_blocked(process);
-    else if (process->m_state == NEW || process->m_state == READY) pq_push_ready(process);
 
-    /* preempt if the new priority is ready and has a higher priority */
-    if (priority < gp_current_process->m_priority && process->m_state != BLOCKED) {
-        return k_release_processor();
-    }
+		switch(process->m_state) {
+		case NEW:
+		case READY:
+			pq_push_ready(process);
+			break;
+		case BLOCKED:
+			pq_push_blocked(process);
+			break;
+		case RUN:
+			#ifdef DEBUG_0
+			printf("k_set_process_priority: process has state RUN but is not current running process\n");
+			#endif
+			break;
+		default:
+			#ifdef DEBUG_0
+			printf("k_set_process_priority: unknown state\n");
+			#endif
+			break;
+		};
 
-    return RTX_OK;
+    return k_release_processor();
 }
 
 /**
