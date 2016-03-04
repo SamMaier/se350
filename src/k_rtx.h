@@ -9,6 +9,8 @@
 #define K_RTX_H_
 
 /*----- Definitations -----*/
+#define DEFAULT 0
+#define KCD_REG 1
 
 #define RTX_ERR -1
 #define RTX_OK  0
@@ -38,6 +40,28 @@ typedef unsigned int U32;
 /* process states */
 typedef enum {NEW = 0, RDY, RUN, BLOCKED} PROC_STATE_E;
 
+
+#define K_MSG_ENV
+/*
+  Message envelope structure defintion.
+  Not sure why we were told to put some of the stuff in the #ifdef,
+  going to pretend like it's always defined.
+*/
+typedef struct msgbuf {
+#ifdef K_MSG_ENV
+    void *mp_next; /* pointer for queue towards front of queue */
+    void *mp_prev; /* pointer for queue towards back of queue */
+    int m_send_id; /* int process ID of sending process */
+    int m_recv_id; /* int process ID of receiving process */
+    int m_kdata[5];/* other spot for data.
+                      Unused right now - not sure why it is suggested. */
+#endif
+    int mtype;     /* DEFAULT (normal) or KCD_REG (register key command) */
+    char mtext[1]; /* Array of characters for message.
+                      I'm not sure why they say it is size one.*/
+} MSGBUF;
+
+
 /*
   PCB data structure definition.
   You may want to add your own member variables
@@ -50,7 +74,10 @@ typedef struct pcb
 	U32 m_pid;		/* process id */
 	PROC_STATE_E m_state;   /* state of the process */
 	U8 m_priority; /* process priority */
+    MSGBUF *m_message_queue_front; /* the first element of the message queue */
+    MSGBUF *m_message_queue_back; /* the last element of the message queue */
 } PCB;
+
 
 /* initialization table item */
 typedef struct proc_init

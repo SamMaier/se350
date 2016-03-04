@@ -25,6 +25,64 @@ extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 PCB *g_proc_priority_front[5] = {NULL, NULL, NULL, NULL, NULL};
 PCB *g_proc_priority_back[5] = {NULL, NULL, NULL, NULL, NULL};
 
+/* Adds a given message to the target's message queue*/
+void enqueue_message(PCB* target, MSGBUF* message) {
+    message->mp_prev = NULL;
+    if (target->m_message_queue_front == NULL) {
+        // No messages in queue right now
+        message->mp_next = NULL;
+        target->m_message_queue_front = message;
+    } else {
+        // At least one message in the queue
+        message->mp_next = target->m_message_queue_back;
+        target->m_message_queue_back->mp_prev = message;
+    }
+    target->m_message_queue_back = message;
+}
+
+MSGBUF* dequeue_message(PCB* target) {
+    MSGBUF* second_message;
+    MSGBUF* return_val = target->m_message_queue_front;
+    if (target->m_message_queue_front == NULL) {
+        // Empty queue, don't have to do anything
+    } else if (target->m_message_queue_back == target->m_message_queue_front) {
+        // Queue with exactly one element
+        target->m_message_queue_front = NULL;
+        target->m_message_queue_back = NULL;
+    } else {
+        // Queue with 2 or more elements
+        second_message = target->m_message_queue_front->mp_prev;
+        second_message->mp_next = NULL;
+        target->m_message_queue_front = second_message;
+    }
+    return return_val;
+}
+
+MSGBUF* create_message_headers(void* message_envelope, int target_proc_id) {
+    MSGBUF* message = (MSGBUF*)message_envelope;
+    message->mp_next = NULL;
+    message->mp_prev = NULL;
+    message->m_send_id = gp_current_process->m_pid;
+    message->m_recv_id = target_proc_id;
+}
+
+/* Adds the given message to the given PCB */
+int send_message(int process_id, void* message_envelope) {
+    MSGBUF* message = create_message_headers(message_envelope, process_id);
+    
+    PCB* target = gp_pcbs[process_id];
+    enqueue_message(target, message);
+    
+    return RTX_OK;
+}
+
+void *receive_message(int *sender_id) {
+    MSGBUF* message = dequeue_message(gp_current_process);
+    if (sender_id != NULL) {
+        *sender_id = message->m_send_id;
+    }
+}
+
 /* check if a given priority has no processes */
 int is_proc_priority_empty(const int priority) {
     /* return true if priority is out of bounds */
@@ -159,6 +217,8 @@ void process_init() {
         (gp_pcbs[i])->m_pid = (g_proc_table[i]).m_pid;
         (gp_pcbs[i])->m_priority = (g_proc_table[i]).m_priority;
         (gp_pcbs[i])->m_state = NEW;
+        (gp_pcbs[i])->m_message_queue_front = NULL;
+        (gp_pcbs[i])->m_message_queue_back = NULL;
 
         sp = alloc_stack((g_proc_table[i]).m_stack_size);
         *(--sp)  = INITIAL_xPSR; // user process initial xPSR
