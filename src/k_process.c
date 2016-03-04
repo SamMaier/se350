@@ -25,63 +25,6 @@ extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 PCB *g_proc_priority_front[5] = {NULL, NULL, NULL, NULL, NULL};
 PCB *g_proc_priority_back[5] = {NULL, NULL, NULL, NULL, NULL};
 
-/* Adds a given message to the target's message queue*/
-void enqueue_message(PCB* target, MSGBUF* message) {
-    message->mp_prev = NULL;
-    if (target->m_message_queue_front == NULL) {
-        // No messages in queue right now
-        message->mp_next = NULL;
-        target->m_message_queue_front = message;
-    } else {
-        // At least one message in the queue
-        message->mp_next = target->m_message_queue_back;
-        target->m_message_queue_back->mp_prev = message;
-    }
-    target->m_message_queue_back = message;
-}
-
-MSGBUF* dequeue_message(PCB* target) {
-    MSGBUF* second_message;
-    MSGBUF* return_val = target->m_message_queue_front;
-    if (target->m_message_queue_front == NULL) {
-        // Empty queue, don't have to do anything
-    } else if (target->m_message_queue_back == target->m_message_queue_front) {
-        // Queue with exactly one element
-        target->m_message_queue_front = NULL;
-        target->m_message_queue_back = NULL;
-    } else {
-        // Queue with 2 or more elements
-        second_message = target->m_message_queue_front->mp_prev;
-        second_message->mp_next = NULL;
-        target->m_message_queue_front = second_message;
-    }
-    return return_val;
-}
-
-MSGBUF* create_message_headers(void* message_envelope, int target_proc_id) {
-    MSGBUF* message = (MSGBUF*)message_envelope;
-    message->mp_next = NULL;
-    message->mp_prev = NULL;
-    message->m_send_id = gp_current_process->m_pid;
-    message->m_recv_id = target_proc_id;
-}
-
-/* Adds the given message to the given PCB */
-int send_message(int process_id, void* message_envelope) {
-    MSGBUF* message = create_message_headers(message_envelope, process_id);
-    
-    PCB* target = gp_pcbs[process_id];
-    enqueue_message(target, message);
-    
-    return RTX_OK;
-}
-
-void *receive_message(int *sender_id) {
-    MSGBUF* message = dequeue_message(gp_current_process);
-    if (sender_id != NULL) {
-        *sender_id = message->m_send_id;
-    }
-}
 
 /* check if a given priority has no processes */
 int is_proc_priority_empty(const int priority) {
@@ -154,7 +97,7 @@ PCB *proc_priority_pop_ready() {
 
         /* for a given priority, try finding a non-blocked process */
         while (proc != NULL) {
-            if (proc->m_state == BLOCKED) proc = proc->mp_next;
+            if (proc->m_state == BLOCKED_ON_MEMORY) proc = proc->mp_next;
             else return proc_priority_pop_proc(proc);
         }
     }
@@ -175,7 +118,7 @@ PCB *proc_priority_pop_blocked() {
 
         /* for a given priority, try finding a blocked process */
         while (proc != NULL) {
-            if (proc->m_state != BLOCKED) proc = proc->mp_next;
+            if (proc->m_state != BLOCKED_ON_MEMORY) proc = proc->mp_next;
             else return proc_priority_pop_proc(proc);
         }
     }
@@ -259,7 +202,7 @@ int process_switch(PCB *p_pcb_old) {
 
     if (state == NEW) {
         if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
-            if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = RDY;
+            if (p_pcb_old->m_state != BLOCKED_ON_MEMORY) p_pcb_old->m_state = RDY;
             p_pcb_old->mp_sp = (U32 *) __get_MSP();
         }
         gp_current_process->m_state = RUN;
@@ -270,7 +213,7 @@ int process_switch(PCB *p_pcb_old) {
     /* The following will only execute if the if block above is FALSE */
     if (gp_current_process != p_pcb_old) {
         if (state == RDY){
-            if (p_pcb_old->m_state != BLOCKED) p_pcb_old->m_state = RDY;
+            if (p_pcb_old->m_state != BLOCKED_ON_MEMORY) p_pcb_old->m_state = RDY;
             p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
             gp_current_process->m_state = RUN;
             __set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack
@@ -332,7 +275,7 @@ int k_set_process_priority(const int process_id, const int priority) {
     proc_priority_push(process);
 
     /* preempt if the new priority is ready and has a higher priority */
-    if (priority < gp_current_process->m_priority && process->m_state != BLOCKED) {
+    if (priority < gp_current_process->m_priority && process->m_state != BLOCKED_ON_MEMORY && process->m_state != BLOCKED_ON_MSG_RECEIVE) {
         return k_release_processor();
     }
 
@@ -350,4 +293,76 @@ int k_get_process_priority(const int process_id) {
 
     process = gp_pcbs[process_id];
     return process->m_priority;
+}
+
+/* Adds a given message to the target's message queue*/
+void enqueue_message(PCB* target, MSGBUF* message) {
+    message->mp_prev = NULL;
+    if (target->m_message_queue_front == NULL) {
+        // No messages in queue right now
+        message->mp_next = NULL;
+        target->m_message_queue_front = message;
+    } else {
+        // At least one message in the queue
+        message->mp_next = target->m_message_queue_back;
+        target->m_message_queue_back->mp_prev = message;
+    }
+    target->m_message_queue_back = message;
+}
+
+MSGBUF* dequeue_message(PCB* target) {
+    MSGBUF* second_message;
+    MSGBUF* return_val = target->m_message_queue_front;
+    if (target->m_message_queue_front == NULL) {
+        // Empty queue, don't have to do anything
+    } else if (target->m_message_queue_back == target->m_message_queue_front) {
+        // Queue with exactly one element
+        target->m_message_queue_front = NULL;
+        target->m_message_queue_back = NULL;
+    } else {
+        // Queue with 2 or more elements
+        second_message = target->m_message_queue_front->mp_prev;
+        second_message->mp_next = NULL;
+        target->m_message_queue_front = second_message;
+    }
+    return return_val;
+}
+
+MSGBUF* create_message_headers(void* message_envelope, int target_proc_id) {
+    MSGBUF* message = (MSGBUF*)message_envelope;
+    message->mp_next = NULL;
+    message->mp_prev = NULL;
+    message->m_send_id = gp_current_process->m_pid;
+    message->m_recv_id = target_proc_id;
+}
+
+/* Adds the given message to the given PCB */
+int send_message(int process_id, void* message_envelope) {
+    MSGBUF* message = create_message_headers(message_envelope, process_id);
+    
+    PCB* target = gp_pcbs[process_id];
+    enqueue_message(target, message);
+    
+    if (target->m_state == BLOCKED_ON_MSG_RECEIVE) {
+        target->m_state = RDY;
+        proc_priority_push(target);
+        // DO WE CALL RELEASE HERE??? WHAT IF CURR PROC HAS HIGHEST PRIORITY
+        // slides don't have this call
+        k_release_processor();
+    }
+    
+    return RTX_OK;
+}
+
+void *receive_message(int *sender_id) {
+    MSGBUF* message = dequeue_message(gp_current_process);
+    while (message == NULL) {
+        // No waiting messages, so preempt this process
+        gp_current_process->m_state = BLOCKED_ON_MSG_RECEIVE;
+        k_release_processor();
+    }
+    if (sender_id != NULL) {
+        *sender_id = message->m_send_id;
+    }
+    return (void*)message;
 }

@@ -134,8 +134,8 @@ void *k_request_memory_block(void) {
 #ifdef DEBUG_0
         printf("Out of memory, oops\n");
 #endif
-        /* we have no free memory, set current process to BLOCKED */
-        gp_current_process->m_state = BLOCKED;
+        /* we have no free memory, set current process to BLOCKED_ON_MEMORY */
+        gp_current_process->m_state = BLOCKED_ON_MEMORY;
         k_release_processor();
     }
 

@@ -38,7 +38,7 @@ typedef unsigned char U8;
 typedef unsigned int U32;
 
 /* process states */
-typedef enum {NEW = 0, RDY, RUN, BLOCKED} PROC_STATE_E;
+typedef enum {NEW = 0, RDY, RUN, BLOCKED_ON_MEMORY, BLOCKED_ON_MSG_RECEIVE} PROC_STATE_E;
 
 
 #define K_MSG_ENV
