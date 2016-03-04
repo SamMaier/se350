@@ -274,6 +274,7 @@ int k_set_process_priority(const int process_id, const int priority) {
 
     if (process_id == gp_current_process->m_pid) {
         gp_current_process->m_priority = priority;
+				// TODO: preempt here
         return RTX_OK;
     }
 
@@ -283,7 +284,7 @@ int k_set_process_priority(const int process_id, const int priority) {
 
     process->m_priority = priority;
     if (process->m_state == BLOCKED) pq_push_blocked(process);
-    else if (process->m_state == READY) pq_push_ready(process);
+    else if (process->m_state == NEW || process->m_state == READY) pq_push_ready(process);
 
     /* preempt if the new priority is ready and has a higher priority */
     if (priority < gp_current_process->m_priority && process->m_state != BLOCKED) {
