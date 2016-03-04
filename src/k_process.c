@@ -27,8 +27,8 @@ extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 
 /* process priority queues */
-PQ gp_blocked_pq;
-PQ gp_ready_pq;
+PQ g_blocked_pq;
+PQ g_ready_pq;
 
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
@@ -106,27 +106,27 @@ PCB* pq_pop(PQ* pq) {
 
 /* convenience functions, useful for external calls */
 void pq_push_ready(PCB* proc) {
-    pq_push(&gp_ready_pq, proc);
+    pq_push(&g_ready_pq, proc);
 }
 
 void pq_push_blocked(PCB* proc) {
-    pq_push(&gp_blocked_pq, proc);
+    pq_push(&g_blocked_pq, proc);
 }
 
 PCB* pq_pop_ready() {
-    return pq_pop(&gp_ready_pq);
+    return pq_pop(&g_ready_pq);
 }
 
 PCB* pq_pop_blocked() {
-    return pq_pop(&gp_blocked_pq);
+    return pq_pop(&g_blocked_pq);
 }
 
 PCB* pq_pop_PCB_ready(const PCB* proc) {
-    return pq_pop_PCB(&gp_ready_pq, proc);
+    return pq_pop_PCB(&g_ready_pq, proc);
 }
 
 PCB* pq_pop_PCB_blocked(const PCB* proc) {
-    return pq_pop_PCB(&gp_blocked_pq, proc);
+    return pq_pop_PCB(&g_blocked_pq, proc);
 }
 
 /* initialize all processes in the system */
@@ -140,10 +140,10 @@ void process_init() {
 
     /* initialize priority queues */
     for (i = 0; i < 5; i++) {
-        gp_blocked_pq.front[i] = NULL;
-        gp_blocked_pq.back[i] = NULL;
-        gp_ready_pq.front[i] = NULL;
-        gp_ready_pq.back[i] = NULL;
+        g_blocked_pq.front[i] = NULL;
+        g_blocked_pq.back[i] = NULL;
+        g_ready_pq.front[i] = NULL;
+        g_ready_pq.back[i] = NULL;
     }
 
     /* initialize system processes */
@@ -212,21 +212,21 @@ int process_switch(PCB *p_pcb_old) {
             switch(p_pcb_old->m_state) {
             case RUN:
             case READY:
-                    p_pcb_old->m_state = READY;
-                    break;
+                p_pcb_old->m_state = READY;
+                break;
             case BLOCKED:
-                    // Don't set state to READY
-                    break;
+                // Don't set state to READY
+                break;
             case NEW:
-                    #ifdef DEBUG_0
-                    printf("process_switch: process has state NEW but shouldn't\n");
-                    #endif
-                    break;
+                #ifdef DEBUG_0
+                printf("process_switch: process has state NEW but shouldn't\n");
+                #endif
+                break;
             default:
-                    #ifdef DEBUG_0
-                    printf("process_switch: unknown state\n");
-                    #endif
-                    break;
+                #ifdef DEBUG_0
+                printf("process_switch: unknown state\n");
+                #endif
+                break;
             };
 
             p_pcb_old->mp_sp = (U32 *) __get_MSP();
@@ -239,25 +239,23 @@ int process_switch(PCB *p_pcb_old) {
 
     /* The following will only execute if the if block above is FALSE */
     if (gp_current_process != p_pcb_old) {
-        if (state == READY){
+        if (state == READY) {
             switch(p_pcb_old->m_state) {
             case RUN:
             case READY:
-                    p_pcb_old->m_state = READY;
-                    break;
-            case BLOCKED:
-                    // Don't set state to READY
-                    break;
+                p_pcb_old->m_state = READY;
+                break;
+            case BLOCKED: break;
             case NEW:
-                    #ifdef DEBUG_0
-                    printf("process_switch: process has state NEW but shouldn't\n");
-                    #endif
-                    break;
+                #ifdef DEBUG_0
+                printf("process_switch: process has state NEW but shouldn't\n");
+                #endif
+                break;
             default:
-                    #ifdef DEBUG_0
-                    printf("process_switch: unknown state\n");
-                    #endif
-                    break;
+                #ifdef DEBUG_0
+                printf("process_switch: unknown state\n");
+                #endif
+                break;
             };
 
             p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
@@ -321,26 +319,25 @@ int k_set_process_priority(const int process_id, const int priority) {
     if (process == NULL) process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
 
     process->m_priority = priority;
-
-		switch(process->m_state) {
-		case NEW:
-		case READY:
-			pq_push_ready(process);
-			break;
-		case BLOCKED:
-			pq_push_blocked(process);
-			break;
-		case RUN:
-			#ifdef DEBUG_0
-			printf("k_set_process_priority: process has state RUN but is not current running process\n");
-			#endif
-			break;
-		default:
-			#ifdef DEBUG_0
-			printf("k_set_process_priority: unknown state\n");
-			#endif
-			break;
-		};
+	switch(process->m_state) {
+	case NEW:
+	case READY:
+		pq_push_ready(process);
+		break;
+	case BLOCKED:
+		pq_push_blocked(process);
+		break;
+	case RUN:
+		#ifdef DEBUG_0
+		printf("k_set_process_priority: process has state RUN but is not current running process\n");
+		#endif
+		break;
+	default:
+		#ifdef DEBUG_0
+		printf("k_set_process_priority: unknown state\n");
+		#endif
+		break;
+	};
 
     return k_release_processor();
 }
