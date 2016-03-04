@@ -36,7 +36,7 @@ typedef unsigned char U8;
 typedef unsigned int U32;
 
 /* process states */
-typedef enum {NEW = 0, RDY, RUN, BLOCKED} PROC_STATE_E;
+typedef enum {NEW = 0, READY, RUN, BLOCKED} PROC_STATE_E;
 
 /*
   PCB data structure definition.
