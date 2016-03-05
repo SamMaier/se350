@@ -260,6 +260,7 @@ int k_release_processor(void) {
  * @return 0 if success, -1 if error
  */
 int k_set_process_priority(const int process_id, const int priority) {
+    // TODO: check if process is in BLOCKED_ON_MSG_RECEIVE when popping out of ready+blocked
     PCB* process;
 
     if (process_id < NUM_SYS_PROCS || process_id >= NUM_PROCS) return RTX_ERR;
@@ -345,7 +346,7 @@ int send_message(int process_id, void* message_envelope) {
     
     if (target->m_state == BLOCKED_ON_MSG_RECEIVE) {
         target->m_state = RDY;
-        proc_priority_push(target);
+        proc_priority_push_ready(target);
         // DO WE CALL RELEASE HERE??? WHAT IF CURR PROC HAS HIGHEST PRIORITY
         // slides don't have this call
         k_release_processor();
@@ -359,6 +360,7 @@ void *receive_message(int *sender_id) {
     while (message == NULL) {
         // No waiting messages, so preempt this process
         gp_current_process->m_state = BLOCKED_ON_MSG_RECEIVE;
+        // k_release_processor NEEDS TO ADD A CHECK TO BLOCKED_ON_MSG_RECEIVE
         k_release_processor();
     }
     if (sender_id != NULL) {
