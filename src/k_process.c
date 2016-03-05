@@ -192,7 +192,15 @@ void process_init() {
  */
 PCB *scheduler(void) {
     PCB *old_proc = gp_current_process;
-    if (old_proc != NULL) pq_push_ready(old_proc);
+    if (old_proc != NULL) {
+        switch(old_proc->m_state) {
+            case BLOCKED_ON_MEMORY:
+            case BLOCKED_ON_MSG_RECEIVE:
+                break;
+            default:
+                pq_push_ready(old_proc);      
+        }
+    }
 
     gp_current_process = pq_pop_ready();
     /* return PCB pointer of the next to run process, NULL if error happens */
@@ -218,8 +226,6 @@ int process_switch(PCB *p_pcb_old) {
                 p_pcb_old->m_state = READY;
                 break;
             case BLOCKED_ON_MEMORY:
-                // Don't set state to READY
-                break;
             case BLOCKED_ON_MSG_RECEIVE:
                 // Don't set state to READY
                 break;
@@ -251,7 +257,7 @@ int process_switch(PCB *p_pcb_old) {
             case READY:
                 p_pcb_old->m_state = READY;
                 break;
-            case BLOCKED_ON_MEMORY: break;
+            case BLOCKED_ON_MEMORY:
             case BLOCKED_ON_MSG_RECEIVE: break;
             case NEW:
                 #ifdef DEBUG_0
@@ -403,10 +409,11 @@ MSGBUF* create_message_headers(void* message_envelope, int target_proc_id) {
     message->mp_prev = NULL;
     message->m_send_id = gp_current_process->m_pid;
     message->m_recv_id = target_proc_id;
+    return message;
 }
 
 /* Adds the given message to the given PCB */
-int send_message(int process_id, void* message_envelope) {
+int k_send_message(int process_id, void* message_envelope) {
     MSGBUF* message = create_message_headers(message_envelope, process_id);
     
     PCB* target = gp_pcbs[process_id];
@@ -417,7 +424,7 @@ int send_message(int process_id, void* message_envelope) {
         pq_push_ready(target);
         // DO WE CALL RELEASE HERE??? WHAT IF CURR PROC HAS HIGHEST PRIORITY
         // slides don't have this call
-        if (target->m_priority > gp_current_process->m_priority) {
+        if (target->m_priority < gp_current_process->m_priority) {
             k_release_processor();
         }
     }
@@ -425,13 +432,13 @@ int send_message(int process_id, void* message_envelope) {
     return RTX_OK;
 }
 
-void *receive_message(int *sender_id) {
+void *k_receive_message(int *sender_id) {
     MSGBUF* message = dequeue_message(gp_current_process);
     while (message == NULL) {
         // No waiting messages, so preempt this process
         gp_current_process->m_state = BLOCKED_ON_MSG_RECEIVE;
-        // k_release_processor NEEDS TO ADD A CHECK TO BLOCKED_ON_MSG_RECEIVE
         k_release_processor();
+        message = dequeue_message(gp_current_process);
     }
     if (sender_id != NULL) {
         *sender_id = message->m_send_id;

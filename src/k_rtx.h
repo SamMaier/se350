@@ -57,7 +57,7 @@ typedef struct msgbuf {
                       Unused right now - not sure why it is suggested. */
 #endif
     int mtype;     /* DEFAULT (normal) or KCD_REG (register key command) */
-    char mtext[1]; /* Array of characters for message.
+    char mtext[4]; /* Array of characters for message.
                       I'm not sure why they say it is size one.*/
 } MSGBUF;
 
