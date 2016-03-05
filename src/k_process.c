@@ -7,6 +7,11 @@
 #include "printf.h"
 #endif
 
+typedef struct {
+    PCB* front[5];
+    PCB* back[5];
+} PQ;
+
 /* global variables */
 PCB **gp_pcbs; // array of pcbs
 PCB *gp_current_process = NULL; // always point to the current RUN process
@@ -22,54 +27,55 @@ extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 
 /* process priority queues */
-PCB *g_proc_priority_front[5] = {NULL, NULL, NULL, NULL, NULL};
-PCB *g_proc_priority_back[5] = {NULL, NULL, NULL, NULL, NULL};
+PQ g_blocked_pq;
+PQ g_ready_pq;
 
 
 /* check if a given priority has no processes */
-int is_proc_priority_empty(const int priority) {
+int pq_is_priority_empty(const PQ* pq, const int priority) {
     /* return true if priority is out of bounds */
     if (priority < 0 || priority > 4) return 1;
-    return (g_proc_priority_front[priority] == NULL);
+    return pq->front[priority] == NULL;
 }
 
 /* push a given process onto the priority queue */
-void proc_priority_push(PCB *proc) {
-    if (is_proc_priority_empty(proc->m_priority)) {
+void pq_push(PQ* pq, PCB* proc) {
+    int priority = proc->m_priority;
+    if (pq_is_priority_empty(pq, priority)) {
         /* if queue is empty, set both the front and back to proc */
-        g_proc_priority_front[proc->m_priority] = proc;
-        g_proc_priority_back[proc->m_priority] = proc;
+        pq->front[priority] = proc;
+        pq->back[priority] = proc;
     } else {
         /* if queue is not empty, add proc to the back of the queue */
-        g_proc_priority_back[proc->m_priority]->mp_next = proc;
-        g_proc_priority_back[proc->m_priority] = proc;
+        pq->back[priority]->mp_next = proc;
+        pq->back[priority] = proc;
     }
 }
 
 /* get the next process of a given priority. Only used internally */
-PCB *proc_priority_pop_front(const int priority) {
-    PCB *front_proc;
+PCB* pq_pop_front(PQ* pq, const int priority) {
+    PCB* front_proc;
 
     /* if our queue is empty, return a NULL pointer */
-    if (is_proc_priority_empty(priority)) return NULL;
+    if (pq_is_priority_empty(pq, priority)) return NULL;
 
-    front_proc = g_proc_priority_front[priority];
-    g_proc_priority_front[priority] = front_proc->mp_next;
+    front_proc = pq->front[priority];
+    pq->front[priority] = front_proc->mp_next;
 
     /* if queue only had 1 proc, it is now empty */
-    if (g_proc_priority_front[priority] == NULL) g_proc_priority_back[priority] = NULL;
+    if (pq->front[priority] == NULL) pq->back[priority] = NULL;
 
     front_proc->mp_next = NULL;
     return front_proc;
 }
 
-/* pop a process from anywhere in the priority queue */
-PCB *proc_priority_pop_proc(const PCB *proc) {
-    PCB *found_proc;
-    PCB *temp_proc = g_proc_priority_front[proc->m_priority];
+/* pop a specific process */
+PCB* pq_pop_PCB(PQ* pq, const PCB* proc) {
+    PCB* found_proc;
+    PCB* temp_proc = pq->front[proc->m_priority];
 
     /* proc is at the front of the queue */
-    if (temp_proc == proc) return proc_priority_pop_front(proc->m_priority);
+    if (temp_proc == proc) return pq_pop_front(pq, proc->m_priority);
 
     /* traverse our queue till we find proc */
     while (temp_proc != NULL && temp_proc->mp_next != NULL && temp_proc->mp_next != proc) {
@@ -86,49 +92,45 @@ PCB *proc_priority_pop_proc(const PCB *proc) {
     return found_proc;
 }
 
-/* pop the highest-priority ready process */
-PCB *proc_priority_pop_ready() {
+/* pop the first, highest-priority process */
+PCB* pq_pop(PQ* pq) {
     int priority;
-    PCB *proc = NULL;
+    PCB* proc = NULL;
 
-    /* iterate through all priorities */
     for (priority = 0; priority < 5; priority++) {
-        proc = g_proc_priority_front[priority];
-
-        /* for a given priority, try finding a non-blocked process */
-        while (proc != NULL) {
-            if (proc->m_state == BLOCKED_ON_MEMORY) proc = proc->mp_next;
-            else return proc_priority_pop_proc(proc);
-        }
+        proc = pq->front[priority];
+        if (proc != NULL) return pq_pop_front(pq, priority);
     }
 
-    /* should never reach here, NULL process should always be returned */
-    return NULL;
+    return NULL; // impossible - should return NULL process first
 }
 
-/* pop the highest-priority blocked process that should preempt the current process */
-PCB *proc_priority_pop_blocked() {
-    int priority;
-    int max_priority = gp_current_process->m_priority;
-    PCB *proc = NULL;
-
-    /* iterate through all priorities higher than the current process*/
-    for (priority = 0; priority < max_priority; priority++) {
-        proc = g_proc_priority_front[priority];
-
-        /* for a given priority, try finding a blocked process */
-        while (proc != NULL) {
-            if (proc->m_state != BLOCKED_ON_MEMORY) proc = proc->mp_next;
-            else return proc_priority_pop_proc(proc);
-        }
-    }
-
-    /* if no blocked process of higher priority is found, return NULL */
-    return NULL;
+/* convenience functions, useful for external calls */
+void pq_push_ready(PCB* proc) {
+    pq_push(&g_ready_pq, proc);
 }
 
-/** Initialize all processes in the system
- */
+void pq_push_blocked(PCB* proc) {
+    pq_push(&g_blocked_pq, proc);
+}
+
+PCB* pq_pop_ready() {
+    return pq_pop(&g_ready_pq);
+}
+
+PCB* pq_pop_blocked() {
+    return pq_pop(&g_blocked_pq);
+}
+
+PCB* pq_pop_PCB_ready(const PCB* proc) {
+    return pq_pop_PCB(&g_ready_pq, proc);
+}
+
+PCB* pq_pop_PCB_blocked(const PCB* proc) {
+    return pq_pop_PCB(&g_blocked_pq, proc);
+}
+
+/* initialize all processes in the system */
 void process_init() {
     int i;
     U32 *sp;
@@ -136,6 +138,14 @@ void process_init() {
     /* fill out the initialization table */
     set_test_procs();
     set_sys_procs();
+
+    /* initialize priority queues */
+    for (i = 0; i < 5; i++) {
+        g_blocked_pq.front[i] = NULL;
+        g_blocked_pq.back[i] = NULL;
+        g_ready_pq.front[i] = NULL;
+        g_ready_pq.back[i] = NULL;
+    }
 
     /* initialize system processes */
     for (i = 0; i < NUM_SYS_PROCS; i++) {
@@ -171,7 +181,7 @@ void process_init() {
         }
         (gp_pcbs[i])->mp_sp = sp;
 
-        proc_priority_push(gp_pcbs[i]);
+        pq_push_ready(gp_pcbs[i]);
     }
 }
 
@@ -182,9 +192,9 @@ void process_init() {
  */
 PCB *scheduler(void) {
     PCB *old_proc = gp_current_process;
-    if (old_proc != NULL) proc_priority_push(old_proc);
+    if (old_proc != NULL) pq_push_ready(old_proc);
 
-    gp_current_process = proc_priority_pop_ready();
+    gp_current_process = pq_pop_ready();
     /* return PCB pointer of the next to run process, NULL if error happens */
     return gp_current_process;
 }
@@ -202,9 +212,32 @@ int process_switch(PCB *p_pcb_old) {
 
     if (state == NEW) {
         if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
-            if (p_pcb_old->m_state != BLOCKED_ON_MEMORY) p_pcb_old->m_state = RDY;
+            switch(p_pcb_old->m_state) {
+            case RUN:
+            case READY:
+                p_pcb_old->m_state = READY;
+                break;
+            case BLOCKED_ON_MEMORY:
+                // Don't set state to READY
+                break;
+            case BLOCKED_ON_MSG_RECEIVE:
+                // Don't set state to READY
+                break;
+            case NEW:
+                #ifdef DEBUG_0
+                printf("process_switch: process has state NEW but shouldn't\n");
+                #endif
+                break;
+            default:
+                #ifdef DEBUG_0
+                printf("process_switch: unknown state\n");
+                #endif
+                break;
+            };
+
             p_pcb_old->mp_sp = (U32 *) __get_MSP();
         }
+
         gp_current_process->m_state = RUN;
         __set_MSP((U32) gp_current_process->mp_sp);
         __rte();  // pop exception stack frame from the stack for a new processes
@@ -212,8 +245,26 @@ int process_switch(PCB *p_pcb_old) {
 
     /* The following will only execute if the if block above is FALSE */
     if (gp_current_process != p_pcb_old) {
-        if (state == RDY){
-            if (p_pcb_old->m_state != BLOCKED_ON_MEMORY) p_pcb_old->m_state = RDY;
+        if (state == READY) {
+            switch(p_pcb_old->m_state) {
+            case RUN:
+            case READY:
+                p_pcb_old->m_state = READY;
+                break;
+            case BLOCKED_ON_MEMORY: break;
+            case BLOCKED_ON_MSG_RECEIVE: break;
+            case NEW:
+                #ifdef DEBUG_0
+                printf("process_switch: process has state NEW but shouldn't\n");
+                #endif
+                break;
+            default:
+                #ifdef DEBUG_0
+                printf("process_switch: unknown state\n");
+                #endif
+                break;
+            };
+
             p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
             gp_current_process->m_state = RUN;
             __set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack
@@ -236,7 +287,7 @@ int k_release_processor(void) {
     PCB *p_pcb_old = gp_current_process;
     gp_current_process = scheduler();
 
-    if (gp_current_process == NULL) { // should usually never occur
+    if (gp_current_process == NULL) { // should never occur
         gp_current_process = p_pcb_old; // revert back to the old process
         return RTX_ERR;
     }
@@ -260,7 +311,6 @@ int k_release_processor(void) {
  * @return 0 if success, -1 if error
  */
 int k_set_process_priority(const int process_id, const int priority) {
-    // TODO: check if process is in BLOCKED_ON_MSG_RECEIVE when popping out of ready+blocked
     PCB* process;
 
     if (process_id < NUM_SYS_PROCS || process_id >= NUM_PROCS) return RTX_ERR;
@@ -268,19 +318,37 @@ int k_set_process_priority(const int process_id, const int priority) {
 
     if (process_id == gp_current_process->m_pid) {
         gp_current_process->m_priority = priority;
-        return RTX_OK;
-    }
-
-    process = proc_priority_pop_proc(gp_pcbs[process_id]);
-    process->m_priority = priority;
-    proc_priority_push(process);
-
-    /* preempt if the new priority is ready and has a higher priority */
-    if (priority < gp_current_process->m_priority && process->m_state != BLOCKED_ON_MEMORY && process->m_state != BLOCKED_ON_MSG_RECEIVE) {
         return k_release_processor();
     }
 
-    return RTX_OK;
+    // TODO: make this generic?
+    process = pq_pop_PCB_ready(gp_pcbs[process_id]);
+    if (process == NULL) process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
+
+    process->m_priority = priority;
+	switch(process->m_state) {
+	case NEW:
+	case READY:
+		pq_push_ready(process);
+		break;
+    case BLOCKED_ON_MSG_RECEIVE:
+        break;
+	case BLOCKED_ON_MEMORY:
+		pq_push_blocked(process);
+		break;
+	case RUN:
+		#ifdef DEBUG_0
+		printf("k_set_process_priority: process has state RUN but is not current running process\n");
+		#endif
+		break;
+	default:
+		#ifdef DEBUG_0
+		printf("k_set_process_priority: unknown state\n");
+		#endif
+		break;
+	};
+
+    return k_release_processor();
 }
 
 /**
@@ -345,11 +413,13 @@ int send_message(int process_id, void* message_envelope) {
     enqueue_message(target, message);
     
     if (target->m_state == BLOCKED_ON_MSG_RECEIVE) {
-        target->m_state = RDY;
-        proc_priority_push_ready(target);
+        target->m_state = READY;
+        pq_push_ready(target);
         // DO WE CALL RELEASE HERE??? WHAT IF CURR PROC HAS HIGHEST PRIORITY
         // slides don't have this call
-        k_release_processor();
+        if (target->m_priority > gp_current_process->m_priority) {
+            k_release_processor();
+        }
     }
     
     return RTX_OK;
