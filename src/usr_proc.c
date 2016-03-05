@@ -1,11 +1,3 @@
-/**
- * @file: usr_proc.c
- * @brief: Two user processes: proc1 and proc2
- * @author: Yiqing Huang
- * @date: 2014/02/28
- * NOTE: Each process is in an infinite loop. Processes never terminate.
- */
-
 #include <LPC17xx.H>
 #include "rtx.h"
 #include "uart_polling.h"
@@ -15,7 +7,7 @@
 /* initialization table item */
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
-void (*g_test_proc_funcs[])(void) = {&proc1, &proc2, &proc3, &proc4, &proc5, &proc6};
+void (*g_test_proc_funcs[]) (void) = { &proc1, &proc2, &proc3, &proc4, &proc5, &proc6 };
 
 int g_current_test;
 int g_tests_passed;
@@ -23,9 +15,9 @@ int g_tests_passed;
 void set_test_procs() {
     int i;
     for (i = 0; i < NUM_TEST_PROCS; i++) {
-        g_test_procs[i].m_pid=(U32)(i+1);
-        g_test_procs[i].m_priority=LOWEST;
-        g_test_procs[i].m_stack_size=0x100;
+        g_test_procs[i].m_pid = (U32) (i + NUM_SYS_PROCS);
+        g_test_procs[i].m_priority = LOWEST;
+        g_test_procs[i].m_stack_size = 0x100;
         g_test_procs[i].mpf_start_pc = g_test_proc_funcs[i];
     }
 }
