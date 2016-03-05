@@ -33,7 +33,7 @@ PQ g_ready_pq;
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
     /* return true if priority is out of bounds */
-    if (priority < 0 || priority > 4) return 1;
+    if (priority < HIGH || priority > HIDDEN) return 1;
     return pq->front[priority] == NULL;
 }
 
@@ -101,7 +101,7 @@ PCB* pq_pop(PQ* pq) {
         if (proc != NULL) return pq_pop_front(pq, priority);
     }
 
-    return NULL; // impossible - should return NULL process first
+    return NULL;
 }
 
 /* convenience functions, useful for external calls */
@@ -141,29 +141,29 @@ void process_init() {
     /* initialize priority queues */
     for (i = 0; i < 5; i++) {
         g_blocked_pq.front[i] = NULL;
-        g_blocked_pq.back[i] = NULL;
-        g_ready_pq.front[i] = NULL;
-        g_ready_pq.back[i] = NULL;
+        g_blocked_pq.back[i]  = NULL;
+        g_ready_pq.front[i]   = NULL;
+        g_ready_pq.back[i]    = NULL;
     }
 
     /* initialize system processes */
     for (i = 0; i < NUM_SYS_PROCS; i++) {
-        g_proc_table[i].m_pid = g_sys_procs[i].m_pid;
-        g_proc_table[i].m_priority = g_sys_procs[i].m_priority;
+        g_proc_table[i].m_pid        = g_sys_procs[i].m_pid;
+        g_proc_table[i].m_priority   = g_sys_procs[i].m_priority;
         g_proc_table[i].m_stack_size = g_sys_procs[i].m_stack_size;
         g_proc_table[i].mpf_start_pc = g_sys_procs[i].mpf_start_pc;
     }
 
     /* initialize test processes */
-    for ( i = 0; i < NUM_TEST_PROCS; i++ ) {
-        g_proc_table[i + NUM_SYS_PROCS].m_pid = g_test_procs[i].m_pid;
-        g_proc_table[i + NUM_SYS_PROCS].m_priority = g_test_procs[i].m_priority;
+    for (i = 0; i < NUM_TEST_PROCS; i++) {
+        g_proc_table[i + NUM_SYS_PROCS].m_pid        = g_test_procs[i].m_pid;
+        g_proc_table[i + NUM_SYS_PROCS].m_priority   = g_test_procs[i].m_priority;
         g_proc_table[i + NUM_SYS_PROCS].m_stack_size = g_test_procs[i].m_stack_size;
         g_proc_table[i + NUM_SYS_PROCS].mpf_start_pc = g_test_procs[i].mpf_start_pc;
     }
 
     /* initilize exception stack frame (i.e. initial context) for each process */
-    for ( i = 0; i < NUM_PROCS; i++ ) {
+    for (i = 0; i < NUM_PROCS; i++) {
         int j;
         (gp_pcbs[i])->mp_next = NULL;
         (gp_pcbs[i])->m_pid = (g_proc_table[i]).m_pid;
@@ -171,14 +171,16 @@ void process_init() {
         (gp_pcbs[i])->m_state = NEW;
 
         sp = alloc_stack((g_proc_table[i]).m_stack_size);
-        *(--sp)  = INITIAL_xPSR; // user process initial xPSR
-        *(--sp)  = (U32)((g_proc_table[i]).mpf_start_pc); // PC contains the entry point of the process
-        for ( j = 0; j < 6; j++ ) { // R0-R3, R12 are cleared with 0
+        *(--sp) = INITIAL_xPSR; // user process initial xPSR
+        *(--sp) = (U32)((g_proc_table[i]).mpf_start_pc); // PC contains the entry point of the process
+        for (j = 0; j < 6; j++) { // R0-R3, R12 are cleared with 0
             *(--sp) = 0x0;
         }
         (gp_pcbs[i])->mp_sp = sp;
 
-        pq_push_ready(gp_pcbs[i]);
+        if (i >= NUM_SYS_PROCS) { // only push test procs to the queue
+            pq_push_ready(gp_pcbs[i]);
+        }
     }
 }
 
@@ -192,7 +194,7 @@ PCB *scheduler(void) {
     if (old_proc != NULL) pq_push_ready(old_proc);
 
     gp_current_process = pq_pop_ready();
-    /* return PCB pointer of the next to run process, NULL if error happens */
+    if (gp_current_process == NULL) gp_current_process = gp_pcbs[0];
     return gp_current_process;
 }
 
