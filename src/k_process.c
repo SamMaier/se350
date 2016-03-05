@@ -8,8 +8,8 @@
 #endif
 
 typedef struct {
-    PCB* front[5];
-    PCB* back[5];
+    PCB* front[4];
+    PCB* back[4];
 } PQ;
 
 /* global variables */
@@ -33,7 +33,7 @@ PQ g_ready_pq;
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
     /* return true if priority is out of bounds */
-    if (priority < HIGH || priority > HIDDEN) return 1;
+    if (priority < HIGH || priority > LOWEST) return 1;
     return pq->front[priority] == NULL;
 }
 
@@ -309,7 +309,7 @@ int k_set_process_priority(const int process_id, const int priority) {
     PCB* process;
 
     if (process_id < NUM_SYS_PROCS || process_id >= NUM_PROCS) return RTX_ERR;
-    if (priority < 0 || priority >= HIDDEN) return RTX_ERR;
+    if (priority < HIGH || priority > LOWEST) return RTX_ERR;
 
     if (process_id == gp_current_process->m_pid) {
         gp_current_process->m_priority = priority;
