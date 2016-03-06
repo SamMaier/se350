@@ -199,8 +199,16 @@ PCB *scheduler(void) {
             case BLOCKED_ON_MEMORY:
             case BLOCKED_ON_MSG_RECEIVE:
                 break;
-            default:
+            case NEW:
+            case READY:
+            case RUN:
                 pq_push_ready(old_proc);      
+                break;
+            default:
+                #ifdef DEBUG_0
+                printf("scheduler: unknown state\n");
+                #endif
+                break;
         }
     }
 
@@ -260,7 +268,9 @@ int process_switch(PCB *p_pcb_old) {
                 p_pcb_old->m_state = READY;
                 break;
             case BLOCKED_ON_MEMORY:
-            case BLOCKED_ON_MSG_RECEIVE: break;
+            case BLOCKED_ON_MSG_RECEIVE:
+                // Don't set state to READY
+                break;
             case NEW:
                 #ifdef DEBUG_0
                 printf("process_switch: process has state NEW but shouldn't\n");
