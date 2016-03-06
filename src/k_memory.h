@@ -13,7 +13,7 @@
 /* ----- Definitions ----- */
 #define RAM_END_ADDR 0x10008000
 #define MEMORY_BLOCK_SIZE 128
-#define NUM_MEMORY_BLOCKS 6
+#define NUM_MEMORY_BLOCKS 30
 
 /* ----- Variables ----- */
 /* This symbol is defined in the scatter file (see RVCT Linker User Guide) */

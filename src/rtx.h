@@ -16,6 +16,9 @@
 #define LOW     2
 #define LOWEST  3
 #define HIDDEN  4
+/* Types of message envelopes */
+#define DEFAULT 0
+#define KCD_REG 1
 
 /* ----- Types ----- */
 typedef unsigned int U32;
@@ -30,8 +33,32 @@ typedef struct proc_init
 	void (*mpf_start_pc) ();/* entry point of the process */
 } PROC_INIT;
 
+#define K_MSG_ENV
+/* message envelope object */
+typedef struct msgbuf {
+#ifdef K_MSG_ENV
+    void *mp_next; /* pointer for queue towards front of queue */
+    void *mp_prev; /* pointer for queue towards back of queue */
+    int m_send_id; /* int process ID of sending process */
+    int m_recv_id; /* int process ID of receiving process */
+    int m_kdata[5];/* other spot for data.
+                      Unused right now - not sure why it is suggested. */
+#endif
+    int mtype;     /* DEFAULT (normal) or KCD_REG (register key command) */
+    char mtext[4]; /* Array of characters for message.
+                      I'm not sure why they say it is size one.*/
+} MSGBUF;
+
 /* ----- RTX User API ----- */
 #define __SVC_0  __svc_indirect(0)
+
+extern int k_send_message(int, void*);
+#define send_message(process_id, message_envelope) _send_message((U32)k_send_message, process_id, message_envelope)
+extern int *_send_message(U32 p_func, int process_id, void* message_envelope) __SVC_0;
+
+extern void *k_receive_message(int*);
+#define receive_message(sender_id) _receive_message((U32)k_receive_message, sender_id)
+extern void *_receive_message(U32 p_func, int *sender_id) __SVC_0;
 
 extern void k_rtx_init(void);
 #define rtx_init() _rtx_init((U32)k_rtx_init)
