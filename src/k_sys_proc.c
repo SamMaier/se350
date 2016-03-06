@@ -11,9 +11,14 @@
 #endif /* DEBUG_0 */
 
 extern int k_release_processor(void);
+extern int get_sys_time(void);
 
 /* initialization table */
 PROC_INIT g_sys_procs[NUM_SYS_PROCS];
+
+/* timer */
+MSG* timeout_queue_front = NULL;
+MSG* timeout_queue_back = NULL;
 
 void set_sys_procs() {
     /* null process */
@@ -35,8 +40,42 @@ void null_process() {
     }
 }
 
+/**
+ * gets called once every millisecond
+ */
 void timer_i_process() {
-    while (1) {
-        k_release_processor();
+    MSG* message = timeout_queue_front;
+
+    while (message != NULL) {
+        if (message->m_expiry <= get_sys_time()) {
+            k_send_message(message->m_receive_id, message);
+            message = message->mp_next;
+        } else {
+            break;
+        }
     }
+}
+
+void enqueue_message_delayed(PCB* pcb, MSG* message, int delay) {
+    int expiry = get_sys_time() + delay;
+    MSG* temp = timeout_queue_front;
+    MSG* next;
+
+    message->m_expiry = expiry;
+
+    // TODO
+
+    // if (temp == NULL) {
+    //     timeout_queue_front = message;
+    //     timeout_queue_back = message;
+    // }
+    //
+    // while (temp != NULL) {
+    //     next = temp->mp_next;
+    //     if (next == NULL) {
+    //
+    //     } else {
+    //
+    //     }
+    // }
 }

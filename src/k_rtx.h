@@ -33,7 +33,6 @@ typedef unsigned int U32;
 /* process states */
 typedef enum { NEW = 0, READY, RUN, BLOCKED_ON_MEMORY, BLOCKED_ON_MSG_RECEIVE } PROC_STATE_E;
 
-
 /* Message envelope structure defintion. */
 typedef struct message {
     void *mp_next;    // pointer for queue towards front of queue
@@ -43,6 +42,7 @@ typedef struct message {
     int m_data[5];    // other spot for data. Unused right now - not sure why it is suggested.
     int m_type;       // DEFAULT (normal) or KCD_REG (register key command)
     char m_text[4];   // Array of characters for message. I'm not sure why they say it is size one.
+    U32 m_expiry;     // expiry time, in milliseconds
 } MSG;
 
 /*
