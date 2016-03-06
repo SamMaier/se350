@@ -7,7 +7,7 @@
 #define SYS_PROC_H_
 
 void set_sys_procs(void);
-void null_process();
-void timer_i_process();
+void null_process(void);
+void timer_i_process(void);
 
 #endif /* SYS_PROC_H_ */

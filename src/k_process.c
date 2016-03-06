@@ -450,13 +450,16 @@ int k_send_message(int process_id, void* message_envelope) {
 }
 
 int k_send_message_delayed(int process_id, void* message_envelope, int delay) {
+    MSG* message;
+    PCB* target;
+
     if (delay == 0) {
         return k_send_message(process_id, message_envelope);
     }
 
-    MSG* message = create_message_headers(message_envelope, process_id);
+    message = create_message_headers(message_envelope, process_id);
 
-    PCB* target = gp_pcbs[process_id];
+    target = gp_pcbs[process_id];
     enqueue_message_delayed(target, message, delay);
 
     return RTX_OK;
