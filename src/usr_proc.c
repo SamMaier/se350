@@ -194,41 +194,41 @@ void proc2(void) {
     struct message * ptr;
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
-    ptr->mtext[0] = 'p';
-    ptr->mtext[1] = 'l';
-    ptr->mtext[2] = 'e';
+    ptr->m_text[0] = 'p';
+    ptr->m_text[1] = 'l';
+    ptr->m_text[2] = 'e';
     send_message(g_test_procs[3].m_pid, ptr);
     
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
-    ptr->mtext[0] = 'e';
-    ptr->mtext[1] = 's';
-    ptr->mtext[2] = 'e';
+    ptr->m_text[0] = 'e';
+    ptr->m_text[1] = 's';
+    ptr->m_text[2] = 'e';
     send_message(g_test_procs[4].m_pid, ptr);
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
-    ptr->mtext[0] = 'd';
-    ptr->mtext[1] = 'o';
-    ptr->mtext[2] = 'n';
+    ptr->m_text[0] = 'd';
+    ptr->m_text[1] = 'o';
+    ptr->m_text[2] = 'n';
     send_message(g_test_procs[4].m_pid, ptr);
     
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
-    ptr->mtext[0] = 't';
-    ptr->mtext[1] = ' ';
-    ptr->mtext[2] = 'f';
+    ptr->m_text[0] = 't';
+    ptr->m_text[1] = ' ';
+    ptr->m_text[2] = 'f';
     send_message(g_test_procs[5].m_pid, ptr);
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
-    ptr->mtext[0] = 'a';
-    ptr->mtext[1] = 'i';
-    ptr->mtext[2] = 'l';
+    ptr->m_text[0] = 'a';
+    ptr->m_text[1] = 'i';
+    ptr->m_text[2] = 'l';
     send_message(g_test_procs[5].m_pid, ptr);
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
-    ptr->mtext[0] = ' ';
-    ptr->mtext[1] = 'u';
-    ptr->mtext[2] = 's';
+    ptr->m_text[0] = ' ';
+    ptr->m_text[1] = 'u';
+    ptr->m_text[2] = 's';
     send_message(g_test_procs[5].m_pid, ptr);
 
     set_process_priority(g_test_procs[1].m_pid, LOWEST);
@@ -258,7 +258,7 @@ void proc3(void) {
 void proc4(void) {
     struct message *msg = (struct message *)receive_message(NULL);
 
-    if (msg->mtext[0] != 'p' || msg->mtext[1] != 'l' || msg->mtext[2] != 'e' || msg->m_type != DEFAULT) {
+    if (msg->m_text[0] != 'p' || msg->m_text[1] != 'l' || msg->m_text[2] != 'e' || msg->m_type != DEFAULT) {
         printf("Process 4 FAILED, did not recieve message with null int* argument\n");
     }
     
@@ -285,11 +285,11 @@ void proc5(void) {
         printf("Process 5 FAILED, interrupt sender.\n");
     }    
     
-    if (msg->mtext[0] != 'e' || msg->mtext[1] != 's' || msg->mtext[2] != 'e' || sender_id != g_test_procs[1].m_pid) {
+    if (msg->m_text[0] != 'e' || msg->m_text[1] != 's' || msg->m_text[2] != 'e' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 5 FAILED - reception of first message incorrect.\n");
     }
     msg = (struct message *)receive_message(&sender_id);
-    if (msg->mtext[0] != 'd' || msg->mtext[1] != 'o' || msg->mtext[2] != 'n' || sender_id != g_test_procs[1].m_pid) {
+    if (msg->m_text[0] != 'd' || msg->m_text[1] != 'o' || msg->m_text[2] != 'n' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 5 FAILED - reception of second message incorrect.\n");
     }
 
@@ -316,15 +316,15 @@ void proc6(void) {
         printf("Process 6 FAILED, did not recieve messages after sending finished.\n");
     }
     msg = (struct message *)receive_message(&sender_id);    
-    if (msg->mtext[0] != 't' || msg->mtext[1] != ' ' || msg->mtext[2] != 'f' || sender_id != g_test_procs[1].m_pid) {
+    if (msg->m_text[0] != 't' || msg->m_text[1] != ' ' || msg->m_text[2] != 'f' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 6 FAILED - reception of first message incorrect.\n");
     }
     msg = (struct message *)receive_message(&sender_id);
-    if (msg->mtext[0] != 'a' || msg->mtext[1] != 'i' || msg->mtext[2] != 'l' || sender_id != g_test_procs[1].m_pid) {
+    if (msg->m_text[0] != 'a' || msg->m_text[1] != 'i' || msg->m_text[2] != 'l' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 6 FAILED - reception of second message incorrect.\n");
     }
     msg = (struct message *)receive_message(&sender_id);
-    if (msg->mtext[0] != ' ' || msg->mtext[1] != 'u' || msg->mtext[2] != 's' || sender_id != g_test_procs[1].m_pid) {
+    if (msg->m_text[0] != ' ' || msg->m_text[1] != 'u' || msg->m_text[2] != 's' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 6 FAILED - reception of third message incorrect.\n");
     }
 

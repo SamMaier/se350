@@ -42,7 +42,7 @@ typedef struct message {
     int m_receive_id; // int process ID of receiving process
     int m_data[5];    // other spot for data. Unused right now - not sure why it is suggested.
     int m_type;       // DEFAULT (normal) or KCD_REG (register key command)
-    char mtext[4];    // Array of characters for message. I'm not sure why they say it is size one.
+    char m_text[4];    // Array of characters for message. I'm not sure why they say it is size one.
 } MSG;
 
 /*
