@@ -30,7 +30,6 @@ extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 PQ g_blocked_pq;
 PQ g_ready_pq;
 
-
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
     /* return true if priority is out of bounds */
@@ -166,12 +165,12 @@ void process_init() {
     /* initilize exception stack frame (i.e. initial context) for each process */
     for (i = 0; i < NUM_PROCS; i++) {
         int j;
-        (gp_pcbs[i])->mp_next = NULL;
-        (gp_pcbs[i])->m_pid = (g_proc_table[i]).m_pid;
-        (gp_pcbs[i])->m_priority = (g_proc_table[i]).m_priority;
-        (gp_pcbs[i])->m_state = NEW;
+        (gp_pcbs[i])->mp_next               = NULL;
+        (gp_pcbs[i])->m_pid                 = (g_proc_table[i]).m_pid;
+        (gp_pcbs[i])->m_priority            = (g_proc_table[i]).m_priority;
+        (gp_pcbs[i])->m_state               = NEW;
         (gp_pcbs[i])->m_message_queue_front = NULL;
-        (gp_pcbs[i])->m_message_queue_back = NULL;
+        (gp_pcbs[i])->m_message_queue_back  = NULL;
 
         sp = alloc_stack((g_proc_table[i]).m_stack_size);
         *(--sp) = INITIAL_xPSR; // user process initial xPSR
@@ -441,7 +440,7 @@ int k_send_message(int process_id, void* message_envelope) {
         // DO WE CALL RELEASE HERE??? WHAT IF CURR PROC HAS HIGHEST PRIORITY
         // slides don't have this call
         if (target->m_priority < gp_current_process->m_priority) {
-            k_release_processor();
+            return k_release_processor();
         }
     }
 

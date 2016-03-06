@@ -21,8 +21,12 @@ void set_test_procs() {
         g_test_procs[i].mpf_start_pc = g_test_proc_funcs[i];
     }
 }
+
+/* Possible tests */
+//#define PART_ONE_TESTS
 #define PART_TWO_TESTS
-#ifndef PART_TWO_TESTS
+
+#ifdef PART_ONE_TESTS
 /**
  * @brief: A process that runs our 5 tests
  */
