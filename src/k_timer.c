@@ -16,12 +16,12 @@
 #define BIT(X) (1<<X)
 
 volatile uint32_t g_timer_count = 0; // increment every 1 ms
+volatile uint32_t g_timer_seconds = 0;
 
 /**
  * @brief: initialize timer. Only timer 0 is supported
  */
-uint32_t timer_init(uint8_t n_timer)
-{
+uint32_t timer_init(uint8_t n_timer) {
     LPC_TIM_TypeDef *pTimer;
     if (n_timer == 0) {
         /*
@@ -102,28 +102,21 @@ uint32_t timer_init(uint8_t n_timer)
  *       push and pop instructions in the assembly routine.
  *       The actual c_TIMER0_IRQHandler does the rest of irq handling
  */
-__asm void TIMER0_IRQHandler(void)
-{
+__asm void TIMER0_IRQHandler(void) {
     PRESERVE8
     IMPORT c_TIMER0_IRQHandler
     PUSH{r4-r11, lr}
     BL c_TIMER0_IRQHandler
     POP{r4-r11, pc}
 }
-/**
- * @brief: c TIMER0 IRQ Handler
- */
-void c_TIMER0_IRQHandler(void)
-{
+
+void c_TIMER0_IRQHandler(void) {
     /* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
     LPC_TIM0->IR = BIT(0);
 
     g_timer_count++;
-
-    // for some reason, the simulator is super slow, it's only 30 ticks per second
-    if (g_timer_count == 30) {
-        // a second has passed
+    if (g_timer_count == 30) { // 30 for simulator
         g_timer_count = 0;
+        g_timer_seconds++;
     }
 }
-

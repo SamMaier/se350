@@ -21,9 +21,21 @@ void set_sys_procs() {
     g_sys_procs[0].m_priority = HIDDEN;
     g_sys_procs[0].m_stack_size = 0x100;
     g_sys_procs[0].mpf_start_pc = &null_process;
+
+    /* timer interrupt process */
+    g_sys_procs[1].m_pid = 1;
+    g_sys_procs[1].m_priority = HIGH;
+    g_sys_procs[1].m_stack_size = 0x100;
+    g_sys_procs[1].mpf_start_pc = &timer_i_process;
 }
 
 void null_process() {
+    while (1) {
+        k_release_processor();
+    }
+}
+
+void timer_i_process() {
     while (1) {
         k_release_processor();
     }
