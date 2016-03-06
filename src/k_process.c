@@ -202,7 +202,7 @@ PCB *scheduler(void) {
             case NEW:
             case READY:
             case RUN:
-                pq_push_ready(old_proc);      
+                pq_push_ready(old_proc);
                 break;
             default:
                 #ifdef DEBUG_0
@@ -383,7 +383,7 @@ int k_get_process_priority(const int process_id) {
 }
 
 /* Adds a given message to the target's message queue*/
-void enqueue_message(PCB* target, MESSAGE* message) {
+void enqueue_message(PCB* target, MSG* message) {
     message->mp_prev = NULL;
     if (target->m_message_queue_front == NULL) {
         // No messages in queue right now
@@ -397,9 +397,9 @@ void enqueue_message(PCB* target, MESSAGE* message) {
     target->m_message_queue_back = message;
 }
 
-MESSAGE* dequeue_message(PCB* target) {
-    MESSAGE* second_message;
-    MESSAGE* return_val = target->m_message_queue_front;
+MSG* dequeue_message(PCB* target) {
+    MSG* second_message;
+    MSG* return_val = target->m_message_queue_front;
     if (target->m_message_queue_front == NULL) {
         // Empty queue, don't have to do anything
     } else if (target->m_message_queue_back == target->m_message_queue_front) {
@@ -415,8 +415,8 @@ MESSAGE* dequeue_message(PCB* target) {
     return return_val;
 }
 
-MESSAGE* create_message_headers(void* message_envelope, int target_proc_id) {
-    MESSAGE* message = (MESSAGE*)message_envelope;
+MSG* create_message_headers(void* message_envelope, int target_proc_id) {
+    MSG* message = (MSG*)message_envelope;
     message->mp_next = NULL;
     message->mp_prev = NULL;
     message->m_send_id = gp_current_process->m_pid;
@@ -424,13 +424,17 @@ MESSAGE* create_message_headers(void* message_envelope, int target_proc_id) {
     return message;
 }
 
-/* Adds the given message to the given PCB */
+/**
+ * Adds the given message to the given PCB
+ * Sends message to given process id
+ * Preempts if higher priority proc waiting for message
+ */
 int k_send_message(int process_id, void* message_envelope) {
-    MESSAGE* message = create_message_headers(message_envelope, process_id);
-    
+    MSG* message = create_message_headers(message_envelope, process_id);
+
     PCB* target = gp_pcbs[process_id];
     enqueue_message(target, message);
-    
+
     if (target->m_state == BLOCKED_ON_MSG_RECEIVE) {
         target->m_state = READY;
         pq_push_ready(target);
@@ -440,12 +444,16 @@ int k_send_message(int process_id, void* message_envelope) {
             k_release_processor();
         }
     }
-    
+
     return RTX_OK;
 }
 
+/**
+ * Blocking recieve
+ * sets sender_id's value to the id of the proc ID of the sender
+ */
 void *k_receive_message(int *sender_id) {
-    MESSAGE* message = dequeue_message(gp_current_process);
+    MSG* message = dequeue_message(gp_current_process);
     while (message == NULL) {
         // No waiting messages, so preempt this process
         gp_current_process->m_state = BLOCKED_ON_MSG_RECEIVE;

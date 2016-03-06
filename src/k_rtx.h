@@ -43,7 +43,7 @@ typedef struct message {
     int m_data[5];    // other spot for data. Unused right now - not sure why it is suggested.
     int m_type;       // DEFAULT (normal) or KCD_REG (register key command)
     char mtext[4];    // Array of characters for message. I'm not sure why they say it is size one.
-} MESSAGE;
+} MSG;
 
 /*
   PCB data structure definition.
@@ -56,8 +56,8 @@ typedef struct pcb {
 	U32 m_pid;		                // process id
 	PROC_STATE_E m_state;           // state of the process
 	U8 m_priority;                  // process priority
-    MESSAGE *m_message_queue_front; // the first element of the message queue
-    MESSAGE *m_message_queue_back;  // the last element of the message queue
+    MSG *m_message_queue_front; // the first element of the message queue
+    MSG *m_message_queue_back;  // the last element of the message queue
 } PCB;
 
 
