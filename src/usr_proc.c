@@ -191,41 +191,41 @@ void proc1(void) {
  * @brief: sends no message to 3, one to 4, two to 5, and three to 6
  */
 void proc2(void) {
-    struct msgbuf * ptr;
-    ptr = (struct msgbuf *) request_memory_block();
-    ptr->mtype = DEFAULT;
+    struct message * ptr;
+    ptr = (struct message *) request_memory_block();
+    ptr->m_type = DEFAULT;
     ptr->mtext[0] = 'p';
     ptr->mtext[1] = 'l';
     ptr->mtext[2] = 'e';
     send_message(g_test_procs[3].m_pid, ptr);
     
-    ptr = (struct msgbuf *) request_memory_block();
-    ptr->mtype = DEFAULT;
+    ptr = (struct message *) request_memory_block();
+    ptr->m_type = DEFAULT;
     ptr->mtext[0] = 'e';
     ptr->mtext[1] = 's';
     ptr->mtext[2] = 'e';
     send_message(g_test_procs[4].m_pid, ptr);
-    ptr = (struct msgbuf *) request_memory_block();
-    ptr->mtype = DEFAULT;
+    ptr = (struct message *) request_memory_block();
+    ptr->m_type = DEFAULT;
     ptr->mtext[0] = 'd';
     ptr->mtext[1] = 'o';
     ptr->mtext[2] = 'n';
     send_message(g_test_procs[4].m_pid, ptr);
     
-    ptr = (struct msgbuf *) request_memory_block();
-    ptr->mtype = DEFAULT;
+    ptr = (struct message *) request_memory_block();
+    ptr->m_type = DEFAULT;
     ptr->mtext[0] = 't';
     ptr->mtext[1] = ' ';
     ptr->mtext[2] = 'f';
     send_message(g_test_procs[5].m_pid, ptr);
-    ptr = (struct msgbuf *) request_memory_block();
-    ptr->mtype = DEFAULT;
+    ptr = (struct message *) request_memory_block();
+    ptr->m_type = DEFAULT;
     ptr->mtext[0] = 'a';
     ptr->mtext[1] = 'i';
     ptr->mtext[2] = 'l';
     send_message(g_test_procs[5].m_pid, ptr);
-    ptr = (struct msgbuf *) request_memory_block();
-    ptr->mtype = DEFAULT;
+    ptr = (struct message *) request_memory_block();
+    ptr->m_type = DEFAULT;
     ptr->mtext[0] = ' ';
     ptr->mtext[1] = 'u';
     ptr->mtext[2] = 's';
@@ -256,9 +256,9 @@ void proc3(void) {
  * @brief: tests recieve with NULL int* argument
  */
 void proc4(void) {
-    struct msgbuf *msg = (struct msgbuf *)receive_message(NULL);
+    struct message *msg = (struct message *)receive_message(NULL);
 
-    if (msg->mtext[0] != 'p' || msg->mtext[1] != 'l' || msg->mtext[2] != 'e' || msg->mtype != DEFAULT) {
+    if (msg->mtext[0] != 'p' || msg->mtext[1] != 'l' || msg->mtext[2] != 'e' || msg->m_type != DEFAULT) {
         printf("Process 4 FAILED, did not recieve message with null int* argument\n");
     }
     
@@ -276,11 +276,11 @@ void proc4(void) {
  */
 void proc5(void) {
     int sender_id = 354354;
-    struct msgbuf *msg;
+    struct message *msg;
     if (g_current_test != 0) {
         printf("Process 5 FAILED, did not start at correct time before sender.\n");
     }
-    msg = (struct msgbuf *)receive_message(&sender_id); 
+    msg = (struct message *)receive_message(&sender_id); 
     if (g_current_test != 1) {
         printf("Process 5 FAILED, interrupt sender.\n");
     }    
@@ -288,7 +288,7 @@ void proc5(void) {
     if (msg->mtext[0] != 'e' || msg->mtext[1] != 's' || msg->mtext[2] != 'e' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 5 FAILED - reception of first message incorrect.\n");
     }
-    msg = (struct msgbuf *)receive_message(&sender_id);
+    msg = (struct message *)receive_message(&sender_id);
     if (msg->mtext[0] != 'd' || msg->mtext[1] != 'o' || msg->mtext[2] != 'n' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 5 FAILED - reception of second message incorrect.\n");
     }
@@ -311,19 +311,19 @@ void proc5(void) {
  */
 void proc6(void) {
     int sender_id = 1231231231;
-    struct msgbuf *msg;
+    struct message *msg;
     if (g_current_test != 2) {
         printf("Process 6 FAILED, did not recieve messages after sending finished.\n");
     }
-    msg = (struct msgbuf *)receive_message(&sender_id);    
+    msg = (struct message *)receive_message(&sender_id);    
     if (msg->mtext[0] != 't' || msg->mtext[1] != ' ' || msg->mtext[2] != 'f' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 6 FAILED - reception of first message incorrect.\n");
     }
-    msg = (struct msgbuf *)receive_message(&sender_id);
+    msg = (struct message *)receive_message(&sender_id);
     if (msg->mtext[0] != 'a' || msg->mtext[1] != 'i' || msg->mtext[2] != 'l' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 6 FAILED - reception of second message incorrect.\n");
     }
-    msg = (struct msgbuf *)receive_message(&sender_id);
+    msg = (struct message *)receive_message(&sender_id);
     if (msg->mtext[0] != ' ' || msg->mtext[1] != 'u' || msg->mtext[2] != 's' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 6 FAILED - reception of third message incorrect.\n");
     }

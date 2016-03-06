@@ -373,7 +373,7 @@ int k_get_process_priority(const int process_id) {
 }
 
 /* Adds a given message to the target's message queue*/
-void enqueue_message(PCB* target, MSGBUF* message) {
+void enqueue_message(PCB* target, MESSAGE* message) {
     message->mp_prev = NULL;
     if (target->m_message_queue_front == NULL) {
         // No messages in queue right now
@@ -387,9 +387,9 @@ void enqueue_message(PCB* target, MSGBUF* message) {
     target->m_message_queue_back = message;
 }
 
-MSGBUF* dequeue_message(PCB* target) {
-    MSGBUF* second_message;
-    MSGBUF* return_val = target->m_message_queue_front;
+MESSAGE* dequeue_message(PCB* target) {
+    MESSAGE* second_message;
+    MESSAGE* return_val = target->m_message_queue_front;
     if (target->m_message_queue_front == NULL) {
         // Empty queue, don't have to do anything
     } else if (target->m_message_queue_back == target->m_message_queue_front) {
@@ -405,18 +405,18 @@ MSGBUF* dequeue_message(PCB* target) {
     return return_val;
 }
 
-MSGBUF* create_message_headers(void* message_envelope, int target_proc_id) {
-    MSGBUF* message = (MSGBUF*)message_envelope;
+MESSAGE* create_message_headers(void* message_envelope, int target_proc_id) {
+    MESSAGE* message = (MESSAGE*)message_envelope;
     message->mp_next = NULL;
     message->mp_prev = NULL;
     message->m_send_id = gp_current_process->m_pid;
-    message->m_recv_id = target_proc_id;
+    message->m_receive_id = target_proc_id;
     return message;
 }
 
 /* Adds the given message to the given PCB */
 int k_send_message(int process_id, void* message_envelope) {
-    MSGBUF* message = create_message_headers(message_envelope, process_id);
+    MESSAGE* message = create_message_headers(message_envelope, process_id);
     
     PCB* target = gp_pcbs[process_id];
     enqueue_message(target, message);
@@ -435,7 +435,7 @@ int k_send_message(int process_id, void* message_envelope) {
 }
 
 void *k_receive_message(int *sender_id) {
-    MSGBUF* message = dequeue_message(gp_current_process);
+    MESSAGE* message = dequeue_message(gp_current_process);
     while (message == NULL) {
         // No waiting messages, so preempt this process
         gp_current_process->m_state = BLOCKED_ON_MSG_RECEIVE;
