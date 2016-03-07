@@ -12,8 +12,8 @@ PCB *scheduler(void);                             // pick the pid of the next to
 int k_release_process(void);                      // kernel release_process function
 int k_set_process_priority(const int, const int); // set process priority
 int k_get_process_priority(const int);            // get process priority
-int k_send_message(int process_id, void* message_envelope);
-void *k_receive_message(int *sender_id);
+int send_message(int process_id, void* message_envelope);
+void *receive_message(int *sender_id);
 
 extern U32 *alloc_stack(U32 size_b); // allocate stack for a process
 extern void __rte(void);             // pop exception stack frame
