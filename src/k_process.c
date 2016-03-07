@@ -224,6 +224,10 @@ PCB *scheduler(void) {
     return gp_current_process;
 }
 
+__asm __new_i_proc_rte() {
+    POP {r0-r5, pc}
+}
+
 /*@brief: switch out old pcb (p_pcb_old), run the new pcb (gp_current_process)
  *@param: p_pcb_old, the old pcb that was in RUN
  *@return: RTX_OK upon success
@@ -263,7 +267,12 @@ int process_switch(PCB *p_pcb_old) {
 
         gp_current_process->m_state = RUN;
         __set_MSP((U32) gp_current_process->mp_sp);
-        __rte();  // pop exception stack frame from the stack for a new processes
+
+        if (p_pcb_old->m_pid < NUM_SYS_PROCS) {
+            __new_i_proc_rte();
+        } else {
+            __rte();  // pop exception stack frame from the stack for a new processes
+        }
     }
 
     /* The following will only execute if the if block above is FALSE */

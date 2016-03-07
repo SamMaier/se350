@@ -85,18 +85,20 @@ void dequeue_message_delayed(MSG *message) {
  * gets called once every millisecond
  */
 void timer_i_process() {
-    MSG* message = timeout_queue_front;
-    U32 systemTime = get_sys_time();
+    while (1) {
+        MSG* message = timeout_queue_front;
+        U32 systemTime = get_sys_time();
 
-    while (message != NULL) {
-        if (message->m_expiry <= systemTime) {
-            dequeue_message_delayed(message);
-            k_send_message(message->m_receive_id, message);
-            message = message->mp_next;
-        } else {
-            break;
+        while (message != NULL) {
+            if (message->m_expiry <= systemTime) {
+                dequeue_message_delayed(message);
+                k_send_message(message->m_receive_id, message);
+                message = message->mp_next;
+            } else {
+                break;
+            }
         }
-    }
 
-    k_release_processor();
+        k_release_processor();
+    }
 }
