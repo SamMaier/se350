@@ -216,14 +216,10 @@ PCB *scheduler(void) {
 
     if (timer_i_proc_pending) {
         timer_i_proc_pending = 0;
-        // set process to timer interrupt process
-        gp_current_process = gp_pcbs[1];
         return gp_pcbs[1];
     }
 
-    gp_current_process = pq_pop_ready();
-    // TODO assert gp_current_process is not NULL: should be null process at least
-    return gp_current_process;
+    return pq_pop_ready();
 }
 
 __asm __new_i_proc_rte() {

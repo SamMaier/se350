@@ -30,8 +30,8 @@ void set_sys_procs() {
 
     /* timer interrupt process */
     g_sys_procs[1].m_pid = 1;
-    g_sys_procs[1].m_priority = HIGH;
-    g_sys_procs[1].m_stack_size = 0x100;
+    g_sys_procs[1].m_priority = INTERRUPT;
+    g_sys_procs[1].m_stack_size = 0x0;
     g_sys_procs[1].mpf_start_pc = &timer_i_process;
 }
 
