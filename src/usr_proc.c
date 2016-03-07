@@ -181,7 +181,7 @@ void proc1(void) {
     g_current_test++; // Using g_current_test to see if our function is called before, during, or after the sender function
     set_process_priority(g_test_procs[1].m_pid, MEDIUM);
     g_current_test++;
-    
+
     // Checking getting 3 from the mailbox
     set_process_priority(g_test_procs[5].m_pid, MEDIUM);
 
@@ -202,7 +202,7 @@ void proc2(void) {
     ptr->m_text[1] = 'l';
     ptr->m_text[2] = 'e';
     send_message(g_test_procs[3].m_pid, ptr);
-    
+
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
     ptr->m_text[0] = 'e';
@@ -215,7 +215,7 @@ void proc2(void) {
     ptr->m_text[1] = 'o';
     ptr->m_text[2] = 'n';
     send_message(g_test_procs[4].m_pid, ptr);
-    
+
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
     ptr->m_text[0] = 't';
@@ -248,7 +248,7 @@ void proc3(void) {
     void *msg = receive_message(NULL);
 
     release_memory_block(msg);
-    
+
     printf("Process 3 FAILED, did not block infinitely.\n");
 
     while (1) {
@@ -265,7 +265,7 @@ void proc4(void) {
     if (msg->m_text[0] != 'p' || msg->m_text[1] != 'l' || msg->m_text[2] != 'e' || msg->m_type != DEFAULT) {
         printf("Process 4 FAILED, did not recieve message with null int* argument\n");
     }
-    
+
     release_memory_block(msg);
 
     printf("Process 4 finished.\n");
@@ -284,11 +284,11 @@ void proc5(void) {
     if (g_current_test != 0) {
         printf("Process 5 FAILED, did not start at correct time before sender.\n");
     }
-    msg = (struct message *)receive_message(&sender_id); 
+    msg = (struct message *)receive_message(&sender_id);
     if (g_current_test != 1) {
         printf("Process 5 FAILED, interrupt sender.\n");
-    }    
-    
+    }
+
     if (msg->m_text[0] != 'e' || msg->m_text[1] != 's' || msg->m_text[2] != 'e' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 5 FAILED - reception of first message incorrect.\n");
     }
@@ -298,11 +298,11 @@ void proc5(void) {
     }
 
     release_memory_block(msg);
-      
+
     if (g_current_test != 1) {
         printf("Process 5 FAILED, did not finish before sender finished.\n");
     }
-    
+
     printf("Process 5 finished.\n");
     set_process_priority(g_test_procs[4].m_pid, LOWEST);
     while (1) {
@@ -319,7 +319,7 @@ void proc6(void) {
     if (g_current_test != 2) {
         printf("Process 6 FAILED, did not recieve messages after sending finished.\n");
     }
-    msg = (struct message *)receive_message(&sender_id);    
+    msg = (struct message *)receive_message(&sender_id);
     if (msg->m_text[0] != 't' || msg->m_text[1] != ' ' || msg->m_text[2] != 'f' || sender_id != g_test_procs[1].m_pid) {
         printf("Process 6 FAILED - reception of first message incorrect.\n");
     }
@@ -333,7 +333,7 @@ void proc6(void) {
     }
 
     release_memory_block(msg);
-    
+
     printf("Process 6 finished.\n");
     set_process_priority(g_test_procs[5].m_pid, LOWEST);
     while (1) {
