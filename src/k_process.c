@@ -171,7 +171,7 @@ void process_init() {
         (gp_pcbs[i])->mp_next               = NULL;
         (gp_pcbs[i])->m_pid                 = (g_proc_table[i]).m_pid;
         (gp_pcbs[i])->m_priority            = (g_proc_table[i]).m_priority;
-        (gp_pcbs[i])->m_state               = NEW;
+        (gp_pcbs[i])->m_state               = (i < NUM_SYS_PROCS) ? READY : NEW;
         (gp_pcbs[i])->m_message_queue_front = NULL;
         (gp_pcbs[i])->m_message_queue_back  = NULL;
 
