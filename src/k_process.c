@@ -343,27 +343,27 @@ int k_set_process_priority(const int process_id, const int priority) {
     if (process == NULL) process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
 
     process->m_priority = priority;
-	switch(process->m_state) {
-	case NEW:
-	case READY:
-		pq_push_ready(process);
-		break;
+    switch(process->m_state) {
+    case NEW:
+    case READY:
+        pq_push_ready(process);
+        break;
     case BLOCKED_ON_MSG_RECEIVE:
         break;
-	case BLOCKED_ON_MEMORY:
-		pq_push_blocked(process);
-		break;
-	case RUN:
-		#ifdef DEBUG_0
-		printf("k_set_process_priority: process has state RUN but is not current running process\n");
-		#endif
-		break;
-	default:
-		#ifdef DEBUG_0
-		printf("k_set_process_priority: unknown state\n");
-		#endif
-		break;
-	};
+    case BLOCKED_ON_MEMORY:
+        pq_push_blocked(process);
+        break;
+    case RUN:
+        #ifdef DEBUG_0
+        printf("k_set_process_priority: process has state RUN but is not current running process\n");
+        #endif
+        break;
+    default:
+        #ifdef DEBUG_0
+        printf("k_set_process_priority: unknown state\n");
+        #endif
+        break;
+    };
 
     return k_release_processor();
 }
