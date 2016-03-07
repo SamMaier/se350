@@ -391,41 +391,35 @@ int k_get_process_priority(const int process_id) {
 
 /* Adds a given message to the target's message queue*/
 void enqueue_message(PCB* target, MSG* message) {
-    message->mp_prev = NULL;
-    if (target->m_message_queue_front == NULL) {
-        // No messages in queue right now
-        message->mp_next = NULL;
+    message->mp_next = NULL;
+    if (target->m_message_queue_back == NULL) {
         target->m_message_queue_front = message;
     } else {
-        // At least one message in the queue
-        message->mp_next = target->m_message_queue_back;
-        target->m_message_queue_back->mp_prev = message;
+        target->m_message_queue_back->mp_next = message;
     }
     target->m_message_queue_back = message;
 }
 
 MSG* dequeue_message(PCB* target) {
-    MSG* second_message;
     MSG* return_val = target->m_message_queue_front;
-    if (target->m_message_queue_front == NULL) {
-        // Empty queue, don't have to do anything
-    } else if (target->m_message_queue_back == target->m_message_queue_front) {
+
+    if (return_val == NULL) {
+        // Empty queue, don't do anything
+    } else if (return_val == target->m_message_queue_back) {
         // Queue with exactly one element
         target->m_message_queue_front = NULL;
         target->m_message_queue_back = NULL;
     } else {
         // Queue with 2 or more elements
-        second_message = target->m_message_queue_front->mp_prev;
-        second_message->mp_next = NULL;
-        target->m_message_queue_front = second_message;
+        target->m_message_queue_front = return_val->mp_next;
     }
+
     return return_val;
 }
 
 MSG* create_message_headers(void* message_envelope, int target_proc_id) {
-    MSG* message = (MSG*)message_envelope;
+    MSG* message = (MSG*) message_envelope;
     message->mp_next = NULL;
-    message->mp_prev = NULL;
     message->m_send_id = gp_current_process->m_pid;
     message->m_receive_id = target_proc_id;
     message->m_expiry = 0;
