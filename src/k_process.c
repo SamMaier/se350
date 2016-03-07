@@ -383,28 +383,27 @@ int k_get_process_priority(const int process_id) {
 
 /* Adds a given message to the target's message queue*/
 void enqueue_message(PCB* target, MSG* message) {
-    message->mp_next = target->m_message_queue_front;
-    if (message->mp_next == NULL) {
-        // No messages in queue right now
-        target->m_message_queue_back = message;
+    message->mp_next = NULL;
+    if (target->m_message_queue_back == NULL) {
+        target->m_message_queue_front = message;
+    } else {
+        target->m_message_queue_back->mp_next = message;
     }
-    target->m_message_queue_front = message;
+    target->m_message_queue_back = message;
 }
 
 MSG* dequeue_message(PCB* target) {
     MSG* return_val = target->m_message_queue_front;
-    MSG* second_message;
 
     if (return_val == NULL) {
-        // Empty queue, don't have to do anything
+        // Empty queue, don't do anything
     } else if (return_val == target->m_message_queue_back) {
         // Queue with exactly one element
         target->m_message_queue_front = NULL;
         target->m_message_queue_back = NULL;
     } else {
         // Queue with 2 or more elements
-        second_message = return_val->mp_next;
-        target->m_message_queue_front = second_message;
+        target->m_message_queue_front = return_val->mp_next;
     }
 
     return return_val;
