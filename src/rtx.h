@@ -1,47 +1,49 @@
-/* @brief: rtx.h User API prototype, this is only an example
- * @author: Yiqing Huang
- * @date: 2014/01/17
- */
 #ifndef RTX_H_
 #define RTX_H_
 
-/* ----- Definitations ----- */
+/* Definitions */
 #define RTX_ERR -1
+
 #define NULL 0
 #define NUM_TEST_PROCS 6
-#define NUM_SYS_PROCS 1
+#define NUM_SYS_PROCS 3
+
 /* Process Priority. The bigger the number is, the lower the priority is*/
 #define HIGH    0
 #define MEDIUM  1
 #define LOW     2
 #define LOWEST  3
 #define HIDDEN  4
+
 /* Types of message envelopes */
 #define DEFAULT 0
 #define KCD_REG 1
+#define CRT_DISPLAY 2
 
-/* ----- Types ----- */
+/* Types */
 typedef unsigned int U32;
 typedef unsigned char U8;
 
 /* initialization table item */
-typedef struct proc_init
-{
-	int m_pid;	        /* process id */
-	int m_priority;         /* initial priority, not used in this example. */
-	int m_stack_size;       /* size of stack in words */
-	void (*mpf_start_pc) ();/* entry point of the process */
+typedef struct proc_init {
+	int m_pid;	             // process id
+	int m_priority;          // initial priority, not used in this example.
+	int m_stack_size;        // size of stack in words
+	void (*mpf_start_pc) (); // entry point of the process
 } PROC_INIT;
 
 /* message envelope object */
+#define K_MSG_ENV
 typedef struct message {
-    void *mp_next; // pointer for queue towards front of queue
-    void *mp_prev; // pointer for queue towards back of queue
-    int m_send_id; // int process ID of sending process
+#ifdef K_MSG_ENV
+    void *mp_next;    // pointer for queue towards front of queue
+    void *mp_prev;    // pointer for queue towards back of queue
+    int m_send_id;    // int process ID of sending process
     int m_receive_id; // int process ID of receiving process
-    int m_data[5]; // other spot for data. Unused right now - not sure why it is suggested.
-    int m_type; // DEFAULT (normal) or KCD_REG (register key command)
-    char m_text[4]; // Array of characters for message. I'm not sure why they say it is size one.
+    int m_data[5];    // other spot for data. Unused right now - not sure why it is suggested.
+#endif
+    int m_type;       // DEFAULT (normal) or KCD_REG (register key command)
+    char m_text[4];   // Array of characters for message. I'm not sure why they say it is size one.
 } MSG;
 
 /* ----- RTX User API ----- */

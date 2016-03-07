@@ -1,16 +1,13 @@
 #ifndef K_RTX_H_
 #define K_RTX_H_
 
-/* Definitions */
-#define DEFAULT 0
-#define KCD_REG 1
-
+/* RTX status codes */
 #define RTX_ERR -1
 #define RTX_OK  0
 
 #define NULL 0
 #define NUM_TEST_PROCS 6
-#define NUM_SYS_PROCS 1
+#define NUM_SYS_PROCS 3
 #define NUM_PROCS NUM_TEST_PROCS + NUM_SYS_PROCS
 
 /* Process Priority. The bigger the number is, the lower the priority is */
@@ -20,27 +17,35 @@
 #define LOWEST  3
 #define HIDDEN  4
 
+/* Message envelope types */
+#define DEFAULT 0
+#define KCD_REG 1
+#define CRT_DISPLAY 2
+
 #ifdef DEBUG_0
 #define USR_SZ_STACK 0x200         /* user proc stack size 512B */
 #else
 #define USR_SZ_STACK 0x100         /* user proc stack size 218B */
 #endif /* DEBUG_0 */
 
-/*----- Types -----*/
-typedef unsigned char U8;
+/* Types */
 typedef unsigned int U32;
+typedef unsigned char U8;
 
 /* process states */
 typedef enum { NEW = 0, READY, RUN, BLOCKED_ON_MEMORY, BLOCKED_ON_MSG_RECEIVE } PROC_STATE_E;
 
 
 /* Message envelope structure defintion. */
+#define K_MSG_ENV
 typedef struct message {
+#ifdef K_MSG_ENV
     void *mp_next;    // pointer for queue towards front of queue
     void *mp_prev;    // pointer for queue towards back of queue
     int m_send_id;    // int process ID of sending process
     int m_receive_id; // int process ID of receiving process
     int m_data[5];    // other spot for data. Unused right now - not sure why it is suggested.
+#endif
     int m_type;       // DEFAULT (normal) or KCD_REG (register key command)
     char m_text[4];   // Array of characters for message. I'm not sure why they say it is size one.
 } MSG;
