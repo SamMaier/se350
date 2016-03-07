@@ -28,3 +28,7 @@ void null_process() {
         k_release_processor();
     }
 }
+
+void kcd_process() {}
+
+void crt_process() {}
