@@ -42,6 +42,7 @@ void null_process() {
 
 void enqueue_message_delayed(PCB* pcb, MSG* message, int delay) {
     MSG* current = timeout_queue_front;
+    MSG* next;
 
     int expiry = get_sys_time() + delay;
     message->m_expiry = expiry;
@@ -50,8 +51,10 @@ void enqueue_message_delayed(PCB* pcb, MSG* message, int delay) {
         message->mp_next = current;
         timeout_queue_front = message;
     } else {
-        while (current->mp_next != NULL && current->mp_next->m_expiry < expiry) {
-            current = current->mp_next;
+        next = current->mp_next;
+        while (next != NULL && next->m_expiry < expiry) {
+            current = next;
+            next = current->mp_next;
         }
         message->mp_next = current->mp_next;
         current->mp_next = message;
