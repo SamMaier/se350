@@ -216,6 +216,8 @@ PCB *scheduler(void) {
 
     if (timer_i_proc_pending) {
         timer_i_proc_pending = 0;
+        // set process to timer interrupt process
+        gp_current_process = gp_pcbs[1];
         return gp_pcbs[1];
     }
 

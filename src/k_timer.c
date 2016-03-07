@@ -1,11 +1,3 @@
-/**
- * @brief k_timer.c - Timer example code. Tiemr IRQ is invoked every 1ms
- * @author T. Reidemeister
- * @author Y. Huang
- * @author NXP Semiconductors
- * @date 2012/02/12
- */
-
 #include <LPC17xx.h>
 #include "k_timer.h"
 
@@ -13,11 +5,11 @@
 #include "printf.h"
 #endif
 
-#define BIT(X) (1<<X)
+#define BIT(X) (1 << X)
 
 extern int k_release_processor(void);
 
-volatile uint32_t g_timer = 0; // increment every 1 ms
+volatile uint32_t g_timer = 0; // increments every 1 ms
 
 extern int timer_i_proc_pending;
 
@@ -114,7 +106,7 @@ __asm void TIMER0_IRQHandler(void) {
 }
 
 void c_TIMER0_IRQHandler(void) {
-    /* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
+    /* ack interrupt, see section 21.6.1 on pg 493 of LPC17XX_UM */
     LPC_TIM0->IR = BIT(0);
 
     g_timer++;
