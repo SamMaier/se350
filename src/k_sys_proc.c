@@ -44,7 +44,7 @@ void null_process() {
     }
 }
 
-void enqueue_message_delayed(PCB* pcb, MSG* message, int delay) {
+void insert_message_delayed(PCB* pcb, MSG* message, int delay) {
     MSG* current = timeout_queue_front;
     MSG* next;
 
@@ -65,20 +65,23 @@ void enqueue_message_delayed(PCB* pcb, MSG* message, int delay) {
     }
 }
 
-void dequeue_message_delayed(MSG *message) {
+void remove_message_delayed(MSG *message) {
     MSG* current = timeout_queue_front;
     MSG* previous;
 
     while (current != NULL) {
         if (current == message) {
             if (current == timeout_queue_front) {
-                timeout_queue_front = current->mp_next;
-                // deq curr
+                // found element at front
+                timeout_queue_front = NULL;
+                return;
             } else {
+                // found element, not at front
                 previous->mp_next = current->mp_next;
-                // deq curr
+                return;
             }
         } else {
+            // didn't find element
             previous = current;
             current = current->mp_next;
         }
@@ -100,7 +103,7 @@ void timer_i_process() {
         //
         // while (message != NULL) {
         //     if (message->m_expiry <= g_timer) {
-        //         dequeue_message_delayed(message);
+        //         remove_message_delayed(message);
         //         k_send_message(message->m_receive_id, message);
         //         message = message->mp_next;
         //     } else {

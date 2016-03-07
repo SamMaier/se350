@@ -25,7 +25,7 @@ U32 g_switch_flag = 0;
 PROC_INIT g_proc_table[NUM_PROCS];
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
-extern void enqueue_message_delayed(PCB*, MSG*, int);
+extern void insert_message_delayed(PCB*, MSG*, int);
 
 /* process priority queues */
 PQ g_blocked_pq;
@@ -496,7 +496,7 @@ int k_send_message_delayed(int process_id, void* message_envelope, int delay) {
     message = create_message_headers(message_envelope, process_id);
 
     target = gp_pcbs[process_id];
-    enqueue_message_delayed(target, message, delay);
+    insert_message_delayed(target, message, delay);
 
     return RTX_OK;
 }
