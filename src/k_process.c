@@ -8,8 +8,8 @@
 #endif
 
 typedef struct {
-    PCB* front[4];
-    PCB* back[4];
+    PCB* front[5];
+    PCB* back[5];
 } PQ;
 
 /* global variables */
@@ -36,7 +36,7 @@ volatile int timer_i_proc_pending = 0;
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
     /* return true if priority is out of bounds */
-    if (priority < HIGH || priority > LOWEST) return 1;
+    if (priority < HIGH || priority > HIDDEN) return 1;
     return pq->front[priority] == NULL;
 }
 
@@ -99,12 +99,12 @@ PCB* pq_pop(PQ* pq) {
     int priority;
     PCB* proc = NULL;
 
-    for (priority = 0; priority < 5; priority++) {
+    for (priority = HIGH; priority <= HIDDEN; priority++) {
         proc = pq->front[priority];
         if (proc != NULL) return pq_pop_front(pq, priority);
     }
 
-    return NULL;
+    return NULL; // impossible - should return NULL process first
 }
 
 /* convenience functions, useful for external calls */
@@ -183,7 +183,7 @@ void process_init() {
         }
         (gp_pcbs[i])->mp_sp = sp;
 
-        if (i >= NUM_SYS_PROCS) { // only push test procs to the queue
+        if ((gp_pcbs[i])->m_priority != INTERRUPT) {
             pq_push_ready(gp_pcbs[i]);
         }
     }
@@ -220,7 +220,7 @@ PCB *scheduler(void) {
     }
 
     gp_current_process = pq_pop_ready();
-    if (gp_current_process == NULL) gp_current_process = gp_pcbs[0];
+    // TODO assert gp_current_process is not NULL: should be null process at least
     return gp_current_process;
 }
 

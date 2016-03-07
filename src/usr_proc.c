@@ -15,8 +15,8 @@ int g_tests_passed;
 void set_test_procs() {
     int i;
     for (i = 0; i < NUM_TEST_PROCS; i++) {
-        g_test_procs[i].m_pid = (U32) (i + NUM_SYS_PROCS);
-        g_test_procs[i].m_priority = LOWEST;
+        g_test_procs[i].m_pid        = (U32) (i + NUM_SYS_PROCS);
+        g_test_procs[i].m_priority   = LOWEST;
         g_test_procs[i].m_stack_size = 0x100;
         g_test_procs[i].mpf_start_pc = g_test_proc_funcs[i];
     }

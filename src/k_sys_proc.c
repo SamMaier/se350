@@ -102,3 +102,7 @@ void timer_i_process() {
         k_release_processor();
     }
 }
+
+void kcd_process() {}
+
+void crt_process() {}
