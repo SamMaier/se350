@@ -24,9 +24,9 @@ void set_test_procs() {
 
 /* Possible tests */
 //#define PART_ONE_TESTS
-//#define PART_TWO_TESTS
+#define PART_TWO_TESTS
 
-#define DEBUG_TEST_ONE
+// #define DEBUG_TEST_ONE
 
 #ifdef PART_ONE_TESTS
 /**

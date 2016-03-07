@@ -103,7 +103,7 @@ void timer_i_process() {
 
         while (message != NULL) {
             if (message->m_expiry <= g_timer) {
-                dequeue_message_delayed(message);
+                remove_message_delayed(message);
                 k_send_message(message->m_receive_id, message);
                 message = message->mp_next;
             } else {
