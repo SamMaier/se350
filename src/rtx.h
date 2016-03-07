@@ -35,8 +35,7 @@ typedef struct proc_init
 
 /* message envelope object */
 typedef struct message {
-    void *mp_next; // pointer for queue towards front of queue
-    void *mp_prev; // pointer for queue towards back of queue
+    void *mp_next; // pointer for queue towards back of queue
     int m_send_id; // int process ID of sending process
     int m_receive_id; // int process ID of receiving process
     int m_data[5]; // other spot for data. Unused right now - not sure why it is suggested.
