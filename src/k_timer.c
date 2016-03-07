@@ -17,14 +17,9 @@
 
 extern int k_release_processor(void);
 
-volatile uint32_t g_timer_ms = 0; // increment every 1 ms
-volatile uint32_t g_timer_s = 0; // increment every 1 s
+volatile uint32_t g_timer = 0; // increment every 1 ms
 
 extern int timer_i_proc_pending;
-
-uint32_t get_sys_time() {
-    return g_timer_s * 1000 + g_timer_ms;
-}
 
 /**
  * @brief: initialize timer. Only timer 0 is supported
@@ -92,7 +87,7 @@ uint32_t timer_init(uint8_t n_timer) {
     */
     pTimer->MCR = BIT(0) | BIT(1);
 
-    g_timer_ms = 0;
+    g_timer = 0;
 
     /* Step 4.4: CSMSIS enable timer0 IRQ */
     NVIC_EnableIRQ(TIMER0_IRQn);
@@ -122,11 +117,7 @@ void c_TIMER0_IRQHandler(void) {
     /* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
     LPC_TIM0->IR = BIT(0);
 
-    g_timer_ms++;
-    if (g_timer_ms == 30) { // 30 for simulator
-        g_timer_ms = 0;
-        g_timer_s++;
-    }
+    g_timer++;
 
     timer_i_proc_pending = 1;
     k_release_processor();

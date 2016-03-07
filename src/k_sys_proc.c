@@ -11,7 +11,6 @@
 #endif /* DEBUG_0 */
 
 extern int k_release_processor(void);
-extern int get_sys_time(void);
 extern int k_send_message(int, void*);
 
 /* initialization table */
@@ -44,7 +43,7 @@ void enqueue_message_delayed(PCB* pcb, MSG* message, int delay) {
     MSG* current = timeout_queue_front;
     MSG* next;
 
-    int expiry = get_sys_time() + delay;
+    int expiry = g_timer + delay;
     message->m_expiry = expiry;
 
     if (current == NULL || current->m_expiry >= expiry) {
@@ -87,10 +86,9 @@ void dequeue_message_delayed(MSG *message) {
 void timer_i_process() {
     while (1) {
         MSG* message = timeout_queue_front;
-        U32 systemTime = get_sys_time();
 
         while (message != NULL) {
-            if (message->m_expiry <= systemTime) {
+            if (message->m_expiry <= g_timer) {
                 dequeue_message_delayed(message);
                 k_send_message(message->m_receive_id, message);
                 message = message->mp_next;
