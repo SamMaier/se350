@@ -9,7 +9,7 @@
 #define RTX_ERR -1
 #define NULL 0
 #define NUM_TEST_PROCS 6
-#define NUM_SYS_PROCS 1
+#define NUM_SYS_PROCS 2
 /* Process Priority. The bigger the number is, the lower the priority is*/
 #define HIGH    0
 #define MEDIUM  1
@@ -49,6 +49,10 @@ typedef struct message {
 extern int k_send_message(int, void*);
 #define send_message(process_id, message_envelope) _send_message((U32)k_send_message, process_id, message_envelope)
 extern int *_send_message(U32 p_func, int process_id, void* message_envelope) __SVC_0;
+
+extern int k_send_message_delayed(int, void*, int);
+#define send_message_delayed(process_id, message_envelope, delay) _send_message_delayed((U32)k_send_message_delayed, process_id, message_envelope, delay)
+extern int *_send_message_delayed(U32 p_func, int process_id, void* message_envelope, int delay) __SVC_0;
 
 extern void *k_receive_message(int*);
 #define receive_message(sender_id) _receive_message((U32)k_receive_message, sender_id)
