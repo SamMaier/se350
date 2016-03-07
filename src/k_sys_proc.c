@@ -3,8 +3,11 @@
  * @brief:  System processes: null process
  */
 
+#include <LPC17xx.h>
 #include "k_rtx.h"
 #include "k_sys_proc.h"
+
+#define BIT(X) (1<<X)
 
 #ifdef DEBUG_0
 #include "printf.h"
@@ -87,19 +90,23 @@ void dequeue_message_delayed(MSG *message) {
  */
 void timer_i_process() {
     while (1) {
-        MSG* message = timeout_queue_front;
+        LPC_TIM0->IR = BIT(0);
 
-        while (message != NULL) {
-            if (message->m_expiry <= g_timer) {
-                dequeue_message_delayed(message);
-                k_send_message(message->m_receive_id, message);
-                message = message->mp_next;
-            } else {
-                break;
-            }
-        }
+        g_timer++;
 
         k_release_processor();
+
+        // MSG* message = timeout_queue_front;
+        //
+        // while (message != NULL) {
+        //     if (message->m_expiry <= g_timer) {
+        //         dequeue_message_delayed(message);
+        //         k_send_message(message->m_receive_id, message);
+        //         message = message->mp_next;
+        //     } else {
+        //         break;
+        //     }
+        // }
     }
 }
 

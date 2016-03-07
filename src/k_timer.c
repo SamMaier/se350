@@ -8,6 +8,7 @@
 #define BIT(X) (1 << X)
 
 extern int k_release_processor(void);
+extern void k_timer_interrupt(void);
 
 volatile uint32_t g_timer = 0; // increments every 1 ms
 
@@ -100,17 +101,21 @@ uint32_t timer_init(uint8_t n_timer) {
 __asm void TIMER0_IRQHandler(void) {
     PRESERVE8
     IMPORT c_TIMER0_IRQHandler
+    CPSID I
     PUSH{r4-r11, lr}
     BL c_TIMER0_IRQHandler
+    CPSIE I
     POP{r4-r11, pc}
 }
 
 void c_TIMER0_IRQHandler(void) {
+    k_timer_interrupt();
+
     /* ack interrupt, see section 21.6.1 on pg 493 of LPC17XX_UM */
-    LPC_TIM0->IR = BIT(0);
-
-    g_timer++;
-
-    timer_i_proc_pending = 1;
-    k_release_processor();
+    // LPC_TIM0->IR = BIT(0);
+    //
+    // g_timer++;
+    //
+    // timer_i_proc_pending = 1;
+    // k_release_processor();
 }
