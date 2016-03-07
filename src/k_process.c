@@ -461,14 +461,7 @@ MSG* create_message_headers(void* message_envelope, int target_proc_id) {
     return message;
 }
 
-/**
- * Adds the given message to the given PCB
- * Sends message to given process id
- * Preempts if higher priority proc waiting for message
- */
-int k_send_message(int process_id, void* message_envelope) {
-    MSG* message = create_message_headers(message_envelope, process_id);
-
+int k_send_message(int process_id, MSG *message) {
     PCB* target = gp_pcbs[process_id];
     enqueue_message(target, message);
 
@@ -485,15 +478,23 @@ int k_send_message(int process_id, void* message_envelope) {
     return RTX_OK;
 }
 
+/**
+ * Adds the given message to the given PCB
+ * Sends message to given process id
+ * Preempts if higher priority proc waiting for message
+ */
+int k_send_message_envelope(int process_id, void* message_envelope) {
+    MSG* message = create_message_headers(message_envelope, process_id);
+    return k_send_message(process_id, message);
+}
+
 int k_send_message_delayed(int process_id, void* message_envelope, int delay) {
-    MSG* message;
+    MSG* message = create_message_headers(message_envelope, process_id);
     PCB* target;
 
     if (delay == 0) {
-        return k_send_message(process_id, message_envelope);
+        return k_send_message(process_id, message);
     }
-
-    message = create_message_headers(message_envelope, process_id);
 
     target = gp_pcbs[process_id];
     insert_message_delayed(target, message, delay);

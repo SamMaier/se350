@@ -54,8 +54,8 @@ typedef struct message {
 /* ----- RTX User API ----- */
 #define __SVC_0  __svc_indirect(0)
 
-extern int k_send_message(int, void*);
-#define send_message(process_id, message_envelope) _send_message((U32)k_send_message, process_id, message_envelope)
+extern int k_send_message_envelope(int, void*);
+#define send_message(process_id, message_envelope) _send_message((U32)k_send_message_envelope, process_id, message_envelope)
 extern int *_send_message(U32 p_func, int process_id, void* message_envelope) __SVC_0;
 
 extern int k_send_message_delayed(int, void*, int);
