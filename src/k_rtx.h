@@ -10,12 +10,17 @@
 #define NUM_SYS_PROCS 1
 #define NUM_PROCS NUM_TEST_PROCS + NUM_SYS_PROCS
 
-/* Process Priority. The bigger the number is, the lower the priority is */
-#define HIGH    0
-#define MEDIUM  1
-#define LOW     2
-#define LOWEST  3
-#define HIDDEN  4
+/* Process Priority.
+ * The bigger the number is, the lower the priority is
+ * HIDDEN is reserved for the null process
+ * INTERRUPT is reserved for interrupt processes
+ */
+#define HIGH      0
+#define MEDIUM    1
+#define LOW       2
+#define LOWEST    3
+#define HIDDEN    4
+#define INTERRUPT 5
 
 /* Types of message envelopes */
 #define DEFAULT 0
@@ -70,7 +75,6 @@ typedef struct proc_init {
     int m_pid;               // process id
     int m_priority;          // initial priority, not used in this example
     int m_stack_size;        // size of stack in words
-    int m_is_interrupt;      // 1 if interrupt
     void (*mpf_start_pc) (); // entry point of the process
 } PROC_INIT;
 
