@@ -20,6 +20,9 @@
 #define KCD_REG 1
 #define CRT_DISPLAY 2
 
+/* Process types */
+typedef enum { SYSTEM = 0, INTERRUPT, USER } PROC_TYPE;
+
 /* Types */
 typedef unsigned int U32;
 typedef unsigned char U8;
@@ -29,12 +32,14 @@ typedef struct proc_init {
 	int m_pid;	             // process id
 	int m_priority;          // initial priority, not used in this example.
 	int m_stack_size;        // size of stack in words
+    PROC_TYPE m_type;        // type of process
 	void (*mpf_start_pc) (); // entry point of the process
 } PROC_INIT;
 
 /* message envelope object */
 #define K_MSG_ENV
 typedef struct message {
+#ifdef K_MSG_ENV
     void *mp_next;    // pointer for queue towards back of queue
     int m_send_id;    // int process ID of sending process
     int m_receive_id; // int process ID of receiving process
