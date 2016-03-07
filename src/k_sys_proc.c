@@ -20,18 +20,21 @@ void set_sys_procs() {
     g_sys_procs[0].m_pid = 0;
     g_sys_procs[0].m_priority = HIDDEN;
     g_sys_procs[0].m_stack_size = 0x100;
+    g_sys_procs[0].m_type = SYSTEM;
     g_sys_procs[0].mpf_start_pc = &null_process;
 
     /* keyboard command decoder process */
     g_sys_procs[1].m_pid = 1;
     g_sys_procs[1].m_priority = HIGH;
     g_sys_procs[1].m_stack_size = 0x100;
+    g_sys_procs[1].m_type = SYSTEM;
     g_sys_procs[1].mpf_start_pc = &kcd_process;
 
     /* CRT display process */
     g_sys_procs[2].m_pid = 2;
     g_sys_procs[2].m_priority = HIGH;
     g_sys_procs[2].m_stack_size = 0x100;
+    g_sys_procs[2].m_type = SYSTEM;
     g_sys_procs[2].mpf_start_pc = &crt_process;
 }
 
