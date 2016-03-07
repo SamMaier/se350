@@ -233,7 +233,7 @@ void proc2(void) {
     ptr->m_text[0] = ' ';
     ptr->m_text[1] = 'u';
     ptr->m_text[2] = 's';
-    send_message(g_test_procs[5].m_pid, ptr);
+    send_message_delayed(g_test_procs[5].m_pid, ptr, 10);
 
     set_process_priority(g_test_procs[1].m_pid, LOWEST);
     while (1) {

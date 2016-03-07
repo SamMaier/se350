@@ -159,4 +159,6 @@ void timer_i_process() {
             break;
         }
     }
+
+    k_release_processor();
 }

@@ -31,6 +31,8 @@ extern void enqueue_message_delayed(PCB*, MSG*, int);
 PQ g_blocked_pq;
 PQ g_ready_pq;
 
+volatile int timer_i_proc_pending = 0;
+
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
     /* return true if priority is out of bounds */
@@ -194,7 +196,7 @@ void process_init() {
  */
 PCB *scheduler(void) {
     PCB *old_proc = gp_current_process;
-    if (old_proc != NULL) {
+    if (old_proc != NULL && old_proc->m_pid >= NUM_SYS_PROCS) {
         switch(old_proc->m_state) {
             case BLOCKED_ON_MEMORY:
             case BLOCKED_ON_MSG_RECEIVE:
@@ -210,6 +212,11 @@ PCB *scheduler(void) {
                 #endif
                 break;
         }
+    }
+
+    if (timer_i_proc_pending) {
+        timer_i_proc_pending = 0;
+        return gp_pcbs[1];
     }
 
     gp_current_process = pq_pop_ready();

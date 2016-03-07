@@ -15,8 +15,12 @@
 
 #define BIT(X) (1<<X)
 
+extern int k_release_processor(void);
+
 volatile uint32_t g_timer_ms = 0; // increment every 1 ms
 volatile uint32_t g_timer_s = 0; // increment every 1 s
+
+extern int timer_i_proc_pending;
 
 uint32_t get_sys_time() {
     return g_timer_s * 1000 + g_timer_ms;
@@ -123,4 +127,7 @@ void c_TIMER0_IRQHandler(void) {
         g_timer_ms = 0;
         g_timer_s++;
     }
+
+    timer_i_proc_pending = 1;
+    k_release_processor();
 }
