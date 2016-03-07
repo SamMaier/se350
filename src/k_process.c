@@ -148,20 +148,20 @@ void process_init() {
 
     /* initialize system processes */
     for (i = 0; i < NUM_SYS_PROCS; i++) {
-        g_proc_table[i].m_pid        = g_sys_procs[i].m_pid;
-        g_proc_table[i].m_priority   = g_sys_procs[i].m_priority;
-        g_proc_table[i].m_stack_size = g_sys_procs[i].m_stack_size;
-        g_proc_table[i].m_type       = g_sys_procs[i].m_type;
-        g_proc_table[i].mpf_start_pc = g_sys_procs[i].mpf_start_pc;
+        g_proc_table[i].m_pid          = g_sys_procs[i].m_pid;
+        g_proc_table[i].m_priority     = g_sys_procs[i].m_priority;
+        g_proc_table[i].m_stack_size   = g_sys_procs[i].m_stack_size;
+        g_proc_table[i].m_is_interrupt = g_sys_procs[i].m_is_interrupt;
+        g_proc_table[i].mpf_start_pc   = g_sys_procs[i].mpf_start_pc;
     }
 
     /* initialize test processes */
     for (i = 0; i < NUM_TEST_PROCS; i++) {
-        g_proc_table[i + NUM_SYS_PROCS].m_pid        = g_test_procs[i].m_pid;
-        g_proc_table[i + NUM_SYS_PROCS].m_priority   = g_test_procs[i].m_priority;
-        g_proc_table[i + NUM_SYS_PROCS].m_stack_size = g_test_procs[i].m_stack_size;
-        g_proc_table[i + NUM_SYS_PROCS].m_type       = g_test_procs[i].m_type;
-        g_proc_table[i + NUM_SYS_PROCS].mpf_start_pc = g_test_procs[i].mpf_start_pc;
+        g_proc_table[i + NUM_SYS_PROCS].m_pid          = g_test_procs[i].m_pid;
+        g_proc_table[i + NUM_SYS_PROCS].m_priority     = g_test_procs[i].m_priority;
+        g_proc_table[i + NUM_SYS_PROCS].m_stack_size   = g_test_procs[i].m_stack_size;
+        g_proc_table[i + NUM_SYS_PROCS].m_is_interrupt = g_test_procs[i].m_is_interrupt;
+        g_proc_table[i + NUM_SYS_PROCS].mpf_start_pc   = g_test_procs[i].mpf_start_pc;
     }
 
     /* initilize exception stack frame (i.e. initial context) for each process */
@@ -182,7 +182,7 @@ void process_init() {
         }
         (gp_pcbs[i])->mp_sp = sp;
 
-        if (g_proc_table[i].m_type == 0) {
+        if (g_proc_table[i].m_is_interrupt == 0) {
             pq_push_ready(gp_pcbs[i]);
         }
     }

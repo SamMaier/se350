@@ -7,7 +7,7 @@
 
 #define NULL 0
 #define NUM_TEST_PROCS 6
-#define NUM_SYS_PROCS 3
+#define NUM_SYS_PROCS 1
 #define NUM_PROCS NUM_TEST_PROCS + NUM_SYS_PROCS
 
 /* Process Priority. The bigger the number is, the lower the priority is */
@@ -17,7 +17,7 @@
 #define LOWEST  3
 #define HIDDEN  4
 
-/* Message envelope types */
+/* Types of message envelopes */
 #define DEFAULT 0
 #define KCD_REG 1
 #define CRT_DISPLAY 2
@@ -55,11 +55,11 @@ typedef struct message {
   in order to finish P1 and the entire project
 */
 typedef struct pcb {
-	struct pcb *mp_next;
-	U32 *mp_sp;		            // stack pointer of the process
-	U32 m_pid;		            // process id
-	PROC_STATE_E m_state;       // state of the process
-	U8 m_priority;              // process priority
+    struct pcb *mp_next;
+    U32 *mp_sp;                 // stack pointer of the process
+    U32 m_pid;                  // process id
+    PROC_STATE_E m_state;       // state of the process
+    U8 m_priority;              // process priority
     MSG *m_message_queue_front; // the first element of the message queue
     MSG *m_message_queue_back;  // the last element of the message queue
 } PCB;
@@ -67,11 +67,11 @@ typedef struct pcb {
 
 /* initialization table item */
 typedef struct proc_init {
-	int m_pid;	             // process id
-	int m_priority;          // initial priority, not used in this example
-	int m_stack_size;        // size of stack in words
+    int m_pid;               // process id
+    int m_priority;          // initial priority, not used in this example
+    int m_stack_size;        // size of stack in words
     int m_is_interrupt;      // 1 if interrupt
-	void (*mpf_start_pc) (); // entry point of the process
+    void (*mpf_start_pc) (); // entry point of the process
 } PROC_INIT;
 
 #endif // ! K_RTX_H_

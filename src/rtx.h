@@ -1,12 +1,13 @@
 #ifndef RTX_H_
 #define RTX_H_
 
-/* Definitions */
+/* RTX status codes */
 #define RTX_ERR -1
+#define RTX_OK  0
 
 #define NULL 0
 #define NUM_TEST_PROCS 6
-#define NUM_SYS_PROCS 3
+#define NUM_SYS_PROCS 1
 
 /* Process Priority. The bigger the number is, the lower the priority is*/
 #define HIGH    0
@@ -26,11 +27,11 @@ typedef unsigned char U8;
 
 /* initialization table item */
 typedef struct proc_init {
-	int m_pid;	             // process id
-	int m_priority;          // initial priority, not used in this example.
-	int m_stack_size;        // size of stack in words
+    int m_pid;               // process id
+    int m_priority;          // initial priority, not used in this example.
+    int m_stack_size;        // size of stack in words
     int m_is_interrupt;      // 1 if interrupt
-	void (*mpf_start_pc) (); // entry point of the process
+    void (*mpf_start_pc) (); // entry point of the process
 } PROC_INIT;
 
 /* message envelope object */
