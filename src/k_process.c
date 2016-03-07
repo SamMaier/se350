@@ -58,7 +58,7 @@ PCB* pq_pop_front(PQ* pq, const int priority) {
     /* if our queue is empty, return a NULL pointer */
     if (pq_is_priority_empty(pq, priority)) return NULL;
 
-    front_proc = pq->front[priority]; 
+    front_proc = pq->front[priority];
     pq->front[priority] = front_proc->mp_next;
 
     /* if queue only had 1 proc, it is now empty */
@@ -182,14 +182,7 @@ void process_init() {
         }
         (gp_pcbs[i])->mp_sp = sp;
 
-        switch (g_proc_table[i].m_type) {
-            case SYSTEM:
-            case USER:
-                pq_push_ready(gp_pcbs[i]);
-                break;
-            case INTERRUPT:
-                break;
-        }
+        pq_push_ready(gp_pcbs[i]); // TODO: don't push if process type is INTERRUPT
     }
 }
 
