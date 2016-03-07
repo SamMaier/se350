@@ -13,6 +13,7 @@ int k_release_process(void);                      // kernel release_process func
 int k_set_process_priority(const int, const int); // set process priority
 int k_get_process_priority(const int);            // get process priority
 int k_send_message(int process_id, void* message_envelope);
+int k_send_message_delayed(int process_id, void* message_envelope, int delay);
 void *k_receive_message(int *sender_id);
 
 extern U32 *alloc_stack(U32 size_b); // allocate stack for a process

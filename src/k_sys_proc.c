@@ -12,6 +12,7 @@
 
 extern int k_release_processor(void);
 extern int get_sys_time(void);
+extern int k_send_message(int, void*);
 
 /* initialization table */
 PROC_INIT g_sys_procs[NUM_SYS_PROCS];
