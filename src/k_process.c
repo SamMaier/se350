@@ -182,7 +182,9 @@ void process_init() {
         }
         (gp_pcbs[i])->mp_sp = sp;
 
-        pq_push_ready(gp_pcbs[i]); // TODO: don't push if process type is INTERRUPT
+        if (g_proc_table[i].m_type == 0) {
+            pq_push_ready(gp_pcbs[i]);
+        }
     }
 }
 

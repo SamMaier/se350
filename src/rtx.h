@@ -20,9 +20,6 @@
 #define KCD_REG 1
 #define CRT_DISPLAY 2
 
-/* Process types */
-typedef enum { SYSTEM = 0, INTERRUPT, USER } PROC_TYPE;
-
 /* Types */
 typedef unsigned int U32;
 typedef unsigned char U8;
@@ -32,7 +29,7 @@ typedef struct proc_init {
 	int m_pid;	             // process id
 	int m_priority;          // initial priority, not used in this example.
 	int m_stack_size;        // size of stack in words
-    PROC_TYPE m_type;        // type of process
+    int m_is_interrupt;      // 1 if interrupt
 	void (*mpf_start_pc) (); // entry point of the process
 } PROC_INIT;
 

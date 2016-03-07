@@ -17,9 +17,6 @@
 #define LOWEST  3
 #define HIDDEN  4
 
-/* Process types */
-typedef enum { SYSTEM = 0, INTERRUPT, USER } PROC_TYPE;
-
 /* Message envelope types */
 #define DEFAULT 0
 #define KCD_REG 1
@@ -73,7 +70,7 @@ typedef struct proc_init {
 	int m_pid;	             // process id
 	int m_priority;          // initial priority, not used in this example
 	int m_stack_size;        // size of stack in words
-    PROC_TYPE m_type;        // type of process
+    int m_is_interrupt;      // 1 if interrupt
 	void (*mpf_start_pc) (); // entry point of the process
 } PROC_INIT;
 

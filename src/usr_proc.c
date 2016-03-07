@@ -18,7 +18,7 @@ void set_test_procs() {
         g_test_procs[i].m_pid = (U32) (i + NUM_SYS_PROCS);
         g_test_procs[i].m_priority = LOWEST;
         g_test_procs[i].m_stack_size = 0x100;
-        g_test_procs[i].m_type = USER;
+        g_test_procs[i].m_type = 0;
         g_test_procs[i].mpf_start_pc = g_test_proc_funcs[i];
     }
 }
