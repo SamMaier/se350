@@ -17,6 +17,8 @@ extern int k_send_message(int, void*);
 PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 
 /* timer */
+extern U32 g_timer;
+
 MSG* timeout_queue_front = NULL;
 
 void set_sys_procs() {
