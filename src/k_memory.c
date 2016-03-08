@@ -134,8 +134,8 @@ void *k_request_memory_block(void) {
 #ifdef DEBUG_0
         printf("Out of memory, oops\n");
 #endif
-        /* we have no free memory, set current process to BLOCKED_ON_MEMORY */
-        gp_current_process->m_state = BLOCKED_ON_MEMORY;
+        /* we have no free memory, set current process to STATE_BLOCKED_MEMORY */
+        gp_current_process->m_state = STATE_BLOCKED_MEMORY;
         k_release_processor();
     }
 
@@ -161,7 +161,7 @@ int k_release_memory_block(void *p_mem_blk) {
 
     /* preempt the current process if a blocked process has a higher priority */
     if (blocked_proc != NULL) {
-        blocked_proc->m_state = READY;
+        blocked_proc->m_state = STATE_READY;
         pq_push_blocked(blocked_proc);
         k_release_processor();
     }
