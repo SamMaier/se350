@@ -173,4 +173,5 @@ __asm void UART0_IRQHandler(void) {
  */
 void c_UART0_IRQHandler(void) {
 	k_uart_interrupt();
+    k_release_processor();
 }

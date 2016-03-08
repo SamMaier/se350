@@ -14,8 +14,11 @@
 #endif /* DEBUG_0 */
 
 extern int k_release_processor(void);
+extern int k_uart_interrupt(void);
 extern int k_send_message(int, MSG*);
+extern void *k_receive_message(int*);
 extern void *k_request_memory_block(void);
+extern int k_release_memory_block(void*);
 extern MSG* dequeue_message(PCB*);
 extern PROC_INIT g_proc_table[NUM_PROCS];
 extern PCB** gp_pcbs;
@@ -40,13 +43,13 @@ void set_sys_procs() {
     g_proc_table[PROC_ID_NULL].mpf_start_pc = &null_process;
 
     /* keyboard command decoder process */
-    g_proc_table[PROC_ID_KCD].m_pid = -1; // TODO
+    g_proc_table[PROC_ID_KCD].m_pid = PROC_ID_KCD; // TODO
     g_proc_table[PROC_ID_KCD].m_priority = HIGH;
     g_proc_table[PROC_ID_KCD].m_stack_size = 0x100;
     g_proc_table[PROC_ID_KCD].mpf_start_pc = &kcd_process;
 
     /* CRT display process */
-    g_proc_table[PROC_ID_CRT].m_pid = -1; // TODO
+    g_proc_table[PROC_ID_CRT].m_pid = PROC_ID_CRT; // TODO
     g_proc_table[PROC_ID_CRT].m_priority = HIGH;
     g_proc_table[PROC_ID_CRT].m_stack_size = 0x100;
     g_proc_table[PROC_ID_CRT].mpf_start_pc = &crt_process;
@@ -78,6 +81,15 @@ void kcd_process() {
 
 void crt_process() {
     while (1) {
+        struct message *msg = (struct message *) k_receive_message(NULL);
+        
+        if (msg->m_type == CRT_DISPLAY) {
+            k_uart_interrupt();
+            k_send_message(PROC_ID_UART, msg);
+        } else {
+            k_release_memory_block(msg);
+        }
+        
         k_release_processor();
     }
 }

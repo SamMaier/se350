@@ -508,12 +508,11 @@ void *k_receive_message(int *sender_id) {
 
 void k_timer_interrupt() {
     timer_i_proc_pending = 1;
-    k_release_processor();
+    k_release_processor(); // TODO: maybe get rid of this call to make this consistent with k_uart_interrupt
 }
 
 void k_uart_interrupt() {
     uart_i_proc_pending = 1;
-    k_release_processor();
 }
 void print_queue(PQ *q) {
     int i;
