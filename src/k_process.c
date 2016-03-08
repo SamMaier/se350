@@ -31,6 +31,7 @@ PQ g_blocked_pq;
 PQ g_ready_pq;
 
 volatile int timer_i_proc_pending = 0;
+volatile int uart_i_proc_pending = 0;
 
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
@@ -211,7 +212,7 @@ PCB *scheduler(void) {
             case NEW:
             case READY:
             case RUN:
-                if (timer_i_proc_pending) {
+                if (timer_i_proc_pending || uart_i_proc_pending) {
                     pq_push_ready_front(old_proc);
                 } else {
                     pq_push_ready(old_proc);
@@ -228,6 +229,9 @@ PCB *scheduler(void) {
     if (timer_i_proc_pending) {
         timer_i_proc_pending = 0;
         return gp_pcbs[PROC_ID_TIMER];
+    } else if (uart_i_proc_pending) {
+        uart_i_proc_pending = 0;
+        return gp_pcbs[PROC_ID_UART];
     }
 
     return pq_pop_ready();
@@ -342,12 +346,6 @@ int k_release_processor(void) {
     process_switch(p_pcb_old);
     return RTX_OK;
 }
-
-void k_timer_interrupt() {
-    timer_i_proc_pending = 1;
-    k_release_processor();
-}
-
 /**
  * Set the priority of a specified process. The process will be pushed back onto
  * the priority queue. If the process is unblocked and the new priority is
@@ -506,4 +504,67 @@ void *k_receive_message(int *sender_id) {
         *sender_id = message->m_send_id;
     }
     return (void*)message;
+}
+
+void k_timer_interrupt() {
+    timer_i_proc_pending = 1;
+    k_release_processor();
+}
+
+void k_uart_interrupt() {
+    uart_i_proc_pending = 1;
+    k_release_processor();
+}
+void print_queue(PQ *q) {
+    int i;
+    PCB *current;
+
+    for (i = 0; i < NUM_PRIORITIES; i++) {
+        if (i == 0) printf("HIGH:\n");
+        else if (i == 1) printf("MEDIUM:\n");
+        else if (i == 2) printf("LOW:\n");
+        else if (i == 3) printf("LOWEST:\n");
+        else if (i == 4) printf("NULL:\n");
+        else printf("INVALID PRIORITY:\n");
+
+        current = q->front[i];
+        while (current != NULL) {
+            printf("\t%d\n", current->m_pid);
+            current = current->mp_next;
+        }
+    }
+}
+
+void print_memory_blocked_procs() {
+    printf("Processes blocked on memory\n");
+    printf("---------------------------\n");
+
+    print_queue(&g_blocked_pq);
+}
+
+void print_message_blocked_procs() {
+    int i;
+    PROC_INIT current;
+    PCB* currentPCB;
+
+    printf("Processes blocked on receive\n");
+    printf("----------------------------\n");
+
+    for (i = 0; i < NUM_PROCS; i++) {
+        current = g_proc_table[i];
+        if (current.m_pid == -1) continue;
+
+        currentPCB = gp_pcbs[current.m_pid];
+
+        if (currentPCB->m_state == BLOCKED_ON_MSG_RECEIVE) {
+            printf("\t%d\n", current.m_pid);
+        }
+    }
+}
+
+void print_ready_procs() {
+    printf("Processes in the Ready Queue\n");
+    printf("----------------------------\n");
+
+    print_queue(&g_ready_pq);
 }

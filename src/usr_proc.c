@@ -29,13 +29,7 @@ void set_test_procs() {
 
 void wall_clock_process() {}
 
-/* Possible tests */
-//#define PART_ONE_TESTS
-#define PART_TWO_TESTS
-
-// #define DEBUG_TEST_ONE
-
-#ifdef PART_ONE_TESTS
+#ifdef MEMORY_TESTS
 /**
  * @brief: A process that runs our 5 tests
  */
@@ -172,7 +166,7 @@ void proc6(void) {
 }
 #endif
 
-#ifdef PART_TWO_TESTS
+#ifdef MESSAGE_TESTS
 /**
  * @brief: A process that runs our 5 tests
  */
@@ -353,63 +347,13 @@ void proc6(void) {
 
 #endif
 
-#ifdef DEBUG_TEST_ONE
+#ifdef SIMPLE_TESTS
 
-void proc1(void) {
-    while (1) {
-        printf("Process 1\n");
-        release_processor();
-    }
-}
-
-/**
- * @brief: sends no message to 3, one to 4, two to 5, and three to 6
- */
-void proc2(void) {
-    while (1) {
-        printf("Process 2\n");
-        release_processor();
-    }
-}
-
-/**
- * @brief: tests infinte block on receive
- */
-void proc3(void) {
-    while (1) {
-        printf("Process 3\n");
-        release_processor();
-    }
-}
-
-/**
- * @brief: tests recieve with NULL int* argument
- */
-void proc4(void) {
-    while (1) {
-        printf("Process 4\n");
-        release_processor();
-    }
-}
-
-/**
- * @brief: tests reception of 2 messages. Should interrupt sending process when it sends them.
- */
-void proc5(void) {
-    while (1) {
-        printf("Process 5\n");
-        release_processor();
-    }
-}
-
-/**
- * @brief: tests reception of 3 messages. All 3 should be waiting.
- */
-void proc6(void) {
-    while (1) {
-        printf("Process 6\n");
-        release_processor();
-    }
-}
+void proc1(void) { while (1) { printf("Process 1\n"); release_processor(); } }
+void proc2(void) { while (1) { printf("Process 2\n"); release_processor(); } }
+void proc3(void) { while (1) { printf("Process 3\n"); release_processor(); } }
+void proc4(void) { while (1) { printf("Process 4\n"); release_processor(); } }
+void proc5(void) { while (1) { printf("Process 5\n"); release_processor(); } }
+void proc6(void) { while (1) { printf("Process 6\n"); release_processor(); } }
 
 #endif
