@@ -1,17 +1,19 @@
-# SE 350 Group
+# SE 350 RTX Project
 
-**Group name**: SE.350.W16-G021
+## Group Information
 
-**Lab section**: SE.350.W16.202.Fri
+**Group name** - G021
 
-Team Members:
+**Lab section** - 202 Friday
 
-* Hamdan Javeed / hjaveed
-* Jessica Wu / j229wu
-* Sam Maier / scmaier
-* David Fu / d23fu
+|Student|User ID|
+|---|---|
+|Hamdan Javeed|hjaveed|
+|Jessica Wu|j229wu|
+|Sam Maier|scmaier|
+|David Fu|d23fu|
 
-# Directory
+## Directory
 
 `doc/` documentation markdown source and PDF
 
