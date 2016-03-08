@@ -553,4 +553,3 @@ void print_ready_procs() {
 
     print_queue(&g_ready_pq);
 }
-

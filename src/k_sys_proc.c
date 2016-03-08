@@ -155,8 +155,8 @@ void timer_i_process() {
 
 void uart_i_process() {
     PCB* uart_pcb = gp_pcbs[PROC_ID_UART];
-	uint8_t IIR_IntId; // Interrupt ID from IIR
-	LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef*) LPC_UART0;
+    uint8_t IIR_IntId; // Interrupt ID from IIR
+    LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef*) LPC_UART0;
     char* buffer;
 
     while (1) {
@@ -166,14 +166,14 @@ void uart_i_process() {
             buffer = msg->m_text;
             pUart->IER |= IER_THRE; // enable whatever THRE is
         }
-        
+
         /* Reading IIR automatically acknowledges the interrupt */
         IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR
         if (IIR_IntId & IIR_RDA) { // Receive Data Avaialbe
             /* read UART. Read RBR will clear the interrupt */
             struct message * ptr;
             g_char_in = pUart->RBR;
-            
+
 #define _DEBUG_HOTKEYS
 #ifdef _DEBUG_HOTKEYS
             if (g_char_in == 'r') {
@@ -185,12 +185,17 @@ void uart_i_process() {
             }
 #endif
             ptr = (struct message *) k_request_memory_block();
-            ptr->m_type = DEFAULT;
-            ptr->m_text[0] = g_char_in;
-            ptr->m_text[1] = '\0';
-            k_send_message(PROC_ID_KCD, ptr);
 
-            
+            if (ptr != NULL) {
+                ptr->m_type = DEFAULT;
+                ptr->m_text[0] = g_char_in;
+                ptr->m_text[1] = '\0';
+                k_send_message(PROC_ID_KCD, ptr);
+            } else {
+                #ifdef DEBUG_0
+                printf("Out of memory in uart_i_process\n");
+                #endif
+            }
         } else if (IIR_IntId & IIR_THRE) {
         /* THRE Interrupt, transmit holding register becomes empty */
             if (buffer != NULL) {
@@ -206,7 +211,7 @@ void uart_i_process() {
             }
         } else {  /* not implemented yet */
 #ifdef DEBUG_0
-			uart1_put_string("Should not get here!\n\r");
+            uart1_put_string("Should not get here!\n\r");
 #endif // DEBUG_0
             return;
         }
