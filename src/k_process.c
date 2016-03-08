@@ -23,8 +23,6 @@ U32 g_switch_flag = 0;
 
 /* process initialization table */
 PROC_INIT g_proc_table[NUM_PROCS];
-extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
-extern PROC_INIT g_sys_procs[NUM_SYS_PROCS];
 
 /* process priority queues */
 PQ g_blocked_pq;
@@ -144,22 +142,6 @@ void process_init() {
         g_blocked_pq.back[i]  = NULL;
         g_ready_pq.front[i]   = NULL;
         g_ready_pq.back[i]    = NULL;
-    }
-
-    /* initialize system processes */
-    for (i = 0; i < NUM_SYS_PROCS; i++) {
-        g_proc_table[i].m_pid        = g_sys_procs[i].m_pid;
-        g_proc_table[i].m_priority   = g_sys_procs[i].m_priority;
-        g_proc_table[i].m_stack_size = g_sys_procs[i].m_stack_size;
-        g_proc_table[i].mpf_start_pc = g_sys_procs[i].mpf_start_pc;
-    }
-
-    /* initialize test processes */
-    for (i = 0; i < NUM_TEST_PROCS; i++) {
-        g_proc_table[i + NUM_SYS_PROCS].m_pid        = g_test_procs[i].m_pid;
-        g_proc_table[i + NUM_SYS_PROCS].m_priority   = g_test_procs[i].m_priority;
-        g_proc_table[i + NUM_SYS_PROCS].m_stack_size = g_test_procs[i].m_stack_size;
-        g_proc_table[i + NUM_SYS_PROCS].mpf_start_pc = g_test_procs[i].mpf_start_pc;
     }
 
     /* initilize exception stack frame (i.e. initial context) for each process */
@@ -330,7 +312,7 @@ int k_release_processor(void) {
 int k_set_process_priority(const int process_id, const int priority) {
     PCB* process;
 
-    if (process_id < NUM_SYS_PROCS || process_id >= NUM_PROCS) return RTX_ERR;
+    if (process_id < 1 || process_id > 6) return RTX_ERR;
     if (priority < HIGH || priority > LOWEST) return RTX_ERR;
 
     if (process_id == gp_current_process->m_pid) {
@@ -375,7 +357,7 @@ int k_set_process_priority(const int process_id, const int priority) {
 int k_get_process_priority(const int process_id) {
     PCB* process;
 
-    if (process_id < 0 || process_id >= NUM_TEST_PROCS) return RTX_ERR;
+    if (process_id < 0 || process_id >= NUM_PROCS) return RTX_ERR;
 
     process = gp_pcbs[process_id];
     return process->m_priority;

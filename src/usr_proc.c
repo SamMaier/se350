@@ -4,7 +4,7 @@
 #include "usr_proc.h"
 #include "printf.h"
 
-/* initialization table item */
+extern PROC_INIT g_proc_table[];
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
 void (*g_test_proc_funcs[]) (void) = { &proc1, &proc2, &proc3, &proc4, &proc5, &proc6 };
@@ -15,10 +15,11 @@ int g_tests_passed;
 void set_test_procs() {
     int i;
     for (i = 0; i < NUM_TEST_PROCS; i++) {
-        g_test_procs[i].m_pid        = (U32) (i + NUM_SYS_PROCS);
-        g_test_procs[i].m_priority   = LOWEST;
-        g_test_procs[i].m_stack_size = 0x100;
-        g_test_procs[i].mpf_start_pc = g_test_proc_funcs[i];
+        g_proc_table[i+1].m_pid        = (U32) (i+1);
+        g_proc_table[i+1].m_priority   = LOWEST;
+        g_proc_table[i+1].m_stack_size = 0x100;
+        g_proc_table[i+1].mpf_start_pc = g_test_proc_funcs[i];
+        g_test_procs[i] = g_proc_table[i+1];
     }
 }
 

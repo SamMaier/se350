@@ -6,9 +6,7 @@
 #define RTX_OK  0
 
 #define NULL 0
-#define NUM_TEST_PROCS 6
-#define NUM_SYS_PROCS 1
-#define NUM_PROCS NUM_TEST_PROCS + NUM_SYS_PROCS
+#define NUM_PROCS 16
 
 /* Process Priority.
  * The bigger the number is, the lower the priority is
