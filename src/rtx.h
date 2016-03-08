@@ -1,6 +1,8 @@
 #ifndef RTX_H_
 #define RTX_H_
 
+#include "common.h"
+
 /* ----- RTX User API ----- */
 #define __SVC_0  __svc_indirect(0)
 

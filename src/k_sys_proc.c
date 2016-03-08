@@ -171,7 +171,7 @@ void uart_i_process() {
         IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR
         if (IIR_IntId & IIR_RDA) { // Receive Data Avaialbe
             /* read UART. Read RBR will clear the interrupt */
-            struct message * ptr;
+            MSG_BUF * ptr;
             g_char_in = pUart->RBR;
 
 #ifdef _DEBUG_HOTKEYS
@@ -183,7 +183,7 @@ void uart_i_process() {
                 print_message_blocked_procs();
             }
 #endif
-            ptr = (struct message *) k_request_memory_block();
+            ptr = (MSG_BUF *) k_request_memory_block();
 
             if (ptr != NULL) {
                 ptr->mtype = DEFAULT;

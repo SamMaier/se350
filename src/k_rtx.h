@@ -1,6 +1,8 @@
 #ifndef K_RTX_H_
 #define K_RTX_H_
 
+#include "common.h"
+
 #ifdef DEBUG_0
 #define USR_SZ_STACK 0x200 // user proc stack size 512B
 #else

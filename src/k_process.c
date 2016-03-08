@@ -250,7 +250,7 @@ __asm __new_i_proc_rte() {
  *      No other effect on other global variables.
  */
 int process_switch(PCB *p_pcb_old) {
-    PROC_STATE_E state = gp_current_process->m_state;
+    U32 state = gp_current_process->m_state;
 
     if (state == STATE_NEW) {
         if (gp_current_process != p_pcb_old && p_pcb_old->m_state != STATE_NEW) {

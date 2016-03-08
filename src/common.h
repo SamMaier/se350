@@ -54,17 +54,6 @@
 typedef unsigned char U8;
 typedef unsigned int U32;
 
-/* process control block */
-typedef struct pcb {
-    struct pcb *mp_next;
-    U32 *mp_sp;                  // stack pointer of the process
-    U32 m_pid;                   // process id
-    PROC_STATE_E m_state;        // state of the process
-    U8 m_priority;               // process priority
-    MSG_BUF *mp_msg_queue_front; // the first element of the message queue
-    MSG_BUF *mp_msg_queue_back;  // the last element of the message queue
-} PCB;
-
 /* initialization table item, exposed to user space */
 typedef struct proc_init {
     int m_pid;               // process id
@@ -83,6 +72,18 @@ typedef struct msgbuf {
 #endif
     int mtype;      // user defined message type
     char mtext[1];  // body of the message
+    int m_expiry;   // expiry time in milliseconds
 } MSG_BUF;
+
+/* process control block */
+typedef struct pcb {
+    struct pcb *mp_next;
+    U32 *mp_sp;                  // stack pointer of the process
+    U32 m_pid;                   // process id
+    U32 m_state;        // state of the process
+    U8 m_priority;               // process priority
+    MSG_BUF *mp_msg_queue_front; // the first element of the message queue
+    MSG_BUF *mp_msg_queue_back;  // the last element of the message queue
+} PCB;
 
 #endif // COMMON_H_
