@@ -526,7 +526,7 @@ void print_queue(PQ *q) {
         else if (i == 2) printf("LOW:\n");
         else if (i == 3) printf("LOWEST:\n");
         else if (i == 4) printf("NULL:\n");
-        else printf("INVALID PRIORITY");
+        else printf("INVALID PRIORITY:\n");
 
         current = q->front[i];
         while (current != NULL) {
