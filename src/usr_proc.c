@@ -29,13 +29,7 @@ void set_test_procs() {
 
 void wall_clock_process() {}
 
-/* Possible tests */
-//#define PART_ONE_TESTS
-#define PART_TWO_TESTS
-
-//#define DEBUG_TEST_ONE
-
-#ifdef PART_ONE_TESTS
+#ifdef MEMORY_TESTS
 /**
  * @brief: A process that runs our 5 tests
  */
@@ -172,7 +166,7 @@ void proc6(void) {
 }
 #endif
 
-#ifdef PART_TWO_TESTS
+#ifdef MESSAGE_TESTS
 /**
  * @brief: A process that runs our 5 tests
  */
@@ -353,7 +347,7 @@ void proc6(void) {
 
 #endif
 
-#ifdef DEBUG_TEST_ONE
+#ifdef SIMPLE_TESTS
 
 void proc1(void) { while (1) { printf("Process 1\n"); release_processor(); } }
 void proc2(void) { while (1) { printf("Process 2\n"); release_processor(); } }
