@@ -136,7 +136,7 @@
             <RestoreMemoryDisplay>1</RestoreMemoryDisplay>
             <RestoreFunctions>0</RestoreFunctions>
             <RestoreToolbox>1</RestoreToolbox>
-            <RestoreTracepoints>0</RestoreTracepoints>
+            <RestoreTracepoints>1</RestoreTracepoints>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
           <TargetSelection>0</TargetSelection>
@@ -456,6 +456,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\k_sys_proc.c</FilePath>
             </File>
+            <File>
+              <FileName>k_timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\k_timer.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -610,7 +615,7 @@
             <RestoreMemoryDisplay>1</RestoreMemoryDisplay>
             <RestoreFunctions>0</RestoreFunctions>
             <RestoreToolbox>1</RestoreToolbox>
-            <RestoreTracepoints>0</RestoreTracepoints>
+            <RestoreTracepoints>1</RestoreTracepoints>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
           <TargetSelection>1</TargetSelection>
@@ -929,6 +934,11 @@
               <FileName>k_sys_proc.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\k_sys_proc.c</FilePath>
+            </File>
+            <File>
+              <FileName>k_timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\k_timer.c</FilePath>
             </File>
           </Files>
         </Group>

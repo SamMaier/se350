@@ -24,9 +24,13 @@ U32 g_switch_flag = 0;
 /* process initialization table */
 PROC_INIT g_proc_table[NUM_PROCS];
 
+extern void insert_message_delayed(PCB*, MSG*, int);
+
 /* process priority queues */
 PQ g_blocked_pq;
 PQ g_ready_pq;
+
+volatile int timer_i_proc_pending = 0;
 
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
@@ -46,6 +50,20 @@ void pq_push(PQ* pq, PCB* proc) {
         /* if queue is not empty, add proc to the back of the queue */
         pq->back[priority]->mp_next = proc;
         pq->back[priority] = proc;
+    }
+}
+
+/* push a given process onto the front of the priority queue */
+void pq_push_front(PQ* pq, PCB* proc) {
+    int priority = proc->m_priority;
+    if (pq_is_priority_empty(pq, priority)) {
+        /* if queue is empty, set both the front and back to proc */
+        pq->front[priority] = proc;
+        pq->back[priority] = proc;
+    } else {
+        /* if queue is not empty, add proc to the front of the queue */
+        proc->mp_next = pq->front[priority];
+        pq->front[priority] = proc;
     }
 }
 
@@ -105,6 +123,10 @@ PCB* pq_pop(PQ* pq) {
 /* convenience functions, useful for external calls */
 void pq_push_ready(PCB* proc) {
     pq_push(&g_ready_pq, proc);
+}
+
+void pq_push_ready_front(PCB* proc) {
+    pq_push_front(&g_ready_pq, proc);
 }
 
 void pq_push_blocked(PCB* proc) {
@@ -181,7 +203,7 @@ void process_init() {
  */
 PCB *scheduler(void) {
     PCB *old_proc = gp_current_process;
-    if (old_proc != NULL) {
+    if (old_proc != NULL && old_proc->m_pid >= 1 && old_proc->m_pid <= 6) {
         switch(old_proc->m_state) {
             case BLOCKED_ON_MEMORY:
             case BLOCKED_ON_MSG_RECEIVE:
@@ -189,7 +211,11 @@ PCB *scheduler(void) {
             case NEW:
             case READY:
             case RUN:
-                pq_push_ready(old_proc);
+                if (timer_i_proc_pending) {
+                    pq_push_ready_front(old_proc);
+                } else {
+                    pq_push_ready(old_proc);
+                }
                 break;
             default:
                 #ifdef DEBUG_0
@@ -199,9 +225,17 @@ PCB *scheduler(void) {
         }
     }
 
-    gp_current_process = pq_pop_ready();
-    // TODO assert gp_current_process is not NULL: should be null process at least
-    return gp_current_process;
+    if (timer_i_proc_pending) {
+        timer_i_proc_pending = 0;
+        // set process to timer interrupt process
+        return gp_pcbs[14];
+    }
+
+    return pq_pop_ready();
+}
+
+__asm __new_i_proc_rte() {
+    POP {r0-r4, r12, pc}
 }
 
 /*@brief: switch out old pcb (p_pcb_old), run the new pcb (gp_current_process)
@@ -243,7 +277,12 @@ int process_switch(PCB *p_pcb_old) {
 
         gp_current_process->m_state = RUN;
         __set_MSP((U32) gp_current_process->mp_sp);
-        __rte();  // pop exception stack frame from the stack for a new processes
+
+        if (gp_current_process->m_pid == 0 || gp_current_process->m_pid > 6) {
+            __new_i_proc_rte();
+        } else {
+            __rte();  // pop exception stack frame from the stack for a new processes
+        }
     }
 
     /* The following will only execute if the if block above is FALSE */
@@ -303,6 +342,11 @@ int k_release_processor(void) {
 
     process_switch(p_pcb_old);
     return RTX_OK;
+}
+
+void k_timer_interrupt() {
+    timer_i_proc_pending = 1;
+    k_release_processor();
 }
 
 /**
@@ -402,17 +446,11 @@ MSG* create_message_headers(void* message_envelope, int target_proc_id) {
     message->mp_next = NULL;
     message->m_send_id = gp_current_process->m_pid;
     message->m_receive_id = target_proc_id;
+    message->m_expiry = 0;
     return message;
 }
 
-/**
- * Adds the given message to the given PCB
- * Sends message to given process id
- * Preempts if higher priority proc waiting for message
- */
-int k_send_message(int process_id, void* message_envelope) {
-    MSG* message = create_message_headers(message_envelope, process_id);
-
+int k_send_message(int process_id, MSG *message) {
     PCB* target = gp_pcbs[process_id];
     enqueue_message(target, message);
 
@@ -425,6 +463,30 @@ int k_send_message(int process_id, void* message_envelope) {
             return k_release_processor();
         }
     }
+
+    return RTX_OK;
+}
+
+/**
+ * Adds the given message to the given PCB
+ * Sends message to given process id
+ * Preempts if higher priority proc waiting for message
+ */
+int k_send_message_envelope(int process_id, void* message_envelope) {
+    MSG* message = create_message_headers(message_envelope, process_id);
+    return k_send_message(process_id, message);
+}
+
+int k_send_message_delayed(int process_id, void* message_envelope, int delay) {
+    MSG* message = create_message_headers(message_envelope, process_id);
+    PCB* target;
+
+    if (delay == 0) {
+        return k_send_message(process_id, message);
+    }
+
+    target = gp_pcbs[process_id];
+    insert_message_delayed(target, message, delay);
 
     return RTX_OK;
 }

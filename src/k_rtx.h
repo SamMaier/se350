@@ -38,7 +38,6 @@ typedef unsigned char U8;
 /* process states */
 typedef enum { NEW = 0, READY, RUN, BLOCKED_ON_MEMORY, BLOCKED_ON_MSG_RECEIVE } PROC_STATE_E;
 
-
 /* Message envelope structure defintion. */
 #define K_MSG_ENV
 typedef struct message {
@@ -50,6 +49,7 @@ typedef struct message {
 #endif
     int m_type;       // DEFAULT (normal) or KCD_REG (register key command)
     char m_text[4];   // Array of characters for message. I'm not sure why they say it is size one.
+    U32 m_expiry;     // expiry time, in milliseconds
 } MSG;
 
 /*

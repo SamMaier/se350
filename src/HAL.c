@@ -10,6 +10,7 @@ __asm void __rte(void)
 {
   PRESERVE8            ; 8 bytes alignement of the stack
   MVN  LR, #:NOT:0xFFFFFFF9  ; set EXC_RETURN value, Thread mode, MSP
+  CPSIE I
   BX   LR
 }
 
@@ -17,6 +18,7 @@ __asm void __rte(void)
 __asm void SVC_Handler (void)
 {
   PRESERVE8            ; 8 bytes alignement of the stack
+  CPSID I
   MRS  R0, MSP         ; Read MSP
 
 
@@ -46,5 +48,6 @@ __asm void SVC_Handler (void)
 SVC_EXIT
 
   MVN  LR, #:NOT:0xFFFFFFF9  ; set EXC_RETURN value, Thread mode, MSP
+  CPSIE I
   BX   LR
 }
