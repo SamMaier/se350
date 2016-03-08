@@ -78,12 +78,6 @@ void null_process() {
     }
 }
 
-//void kcd_process() {
-//    while (1) {
-//        k_release_processor();
-//    }
-//}
-
 void kcd_process(void) {
     int buf_length = 0;
     while (1) {
