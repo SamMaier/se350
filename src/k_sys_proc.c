@@ -91,14 +91,14 @@ void kcd_process(void) {
         // Alocate a new block to replenish UART
         // TODO switch on msg type or sender
         int sender;
-        struct message *msg = (struct message *) k_receive_message(&sender);
-        if (msg->m_type == DEFAULT) {
+        MSG_BUF *msg = (MSG_BUF *) k_receive_message(&sender);
+        if (msg->mtype == DEFAULT) {
             void* block_for_uart;
             char char_in;
 
             block_for_uart = k_request_memory_block();
-            k_send_message(PROC_ID_NULL, block_for_uart); // savage
-            char_in = msg->m_text[0];
+            k_send_message(PID_NULL, block_for_uart); // savage
+            char_in = msg->mtext[0];
 
             if (buf_length >= (0x100 - sizeof(int) - 2)) {
                 char_in = '\r'; // nasty hack to move to next mem block
@@ -111,22 +111,22 @@ void kcd_process(void) {
                 buf_length++;
                 g_command_buf[buf_length] = '\0';
                 buf_length = 0;
-                strcpy(msg->m_text, "\r\n");
-                msg->m_type = CRT_DISPLAY;
-                k_send_message(PROC_ID_CRT, msg);
+                strcpy(msg->mtext, "\r\n");
+                msg->mtype = CRT_DISPLAY;
+                k_send_message(PID_CRT, msg);
                 if (g_command_buf[0] == '%' && g_kcd_registry[g_command_buf[1]] > -1) {
-                    struct message* command_block = (struct message *) k_request_memory_block();
-                    strcpy(command_block->m_text, g_command_buf);
+                    MSG_BUF* command_block = (MSG_BUF *) k_request_memory_block();
+                    strcpy(command_block->mtext, g_command_buf);
                     k_send_message(g_kcd_registry[g_command_buf[1]], command_block);
                 }
             } else {
-                msg->m_text[1] = '\0';
-                msg->m_type = CRT_DISPLAY;
-                k_send_message(PROC_ID_CRT, msg);
+                msg->mtext[1] = '\0';
+                msg->mtype = CRT_DISPLAY;
+                k_send_message(PID_CRT, msg);
             }
-        } else if (msg->m_type == KCD_REG) {
-            if (msg->m_text[0] == '%') {
-                g_kcd_registry[msg->m_text[1]] = sender;
+        } else if (msg->mtype == KCD_REG) {
+            if (msg->mtext[0] == '%') {
+                g_kcd_registry[msg->mtext[1]] = sender;
             } else {
                 // KCD reg didn't start with a %
             }
@@ -141,11 +141,11 @@ void kcd_process(void) {
 
 void crt_process() {
     while (1) {
-        struct message *msg = (struct message *) k_receive_message(NULL);
+        MSG_BUF *msg = (MSG_BUF *) k_receive_message(NULL);
 
-        if (msg->m_type == CRT_DISPLAY) {
+        if (msg->mtype == CRT_DISPLAY) {
             k_uart_interrupt();
-            k_send_message(PROC_ID_UART, msg);
+            k_send_message(PID_UART_IPROC, msg);
         } else {
             k_release_memory_block(msg);
         }
