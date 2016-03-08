@@ -133,6 +133,10 @@ void process_init() {
     U32 *sp;
 
     /* fill out the initialization table */
+
+    for (i = 0; i < NUM_PROCS; i++) {
+        g_proc_table[i].m_pid = -1; // uninitialized;
+    }
     set_test_procs();
     set_sys_procs();
 
@@ -147,6 +151,8 @@ void process_init() {
     /* initilize exception stack frame (i.e. initial context) for each process */
     for (i = 0; i < NUM_PROCS; i++) {
         int j;
+        if (g_proc_table[i].m_pid == -1) continue;
+
         (gp_pcbs[i])->mp_next               = NULL;
         (gp_pcbs[i])->m_pid                 = (g_proc_table[i]).m_pid;
         (gp_pcbs[i])->m_priority            = (g_proc_table[i]).m_priority;
