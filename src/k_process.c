@@ -522,21 +522,40 @@ void k_timer_interrupt() {
 }
 
 void print_memory_blocked_procs() {
-    printf("mem procs");
+    printf("mem procs\n");
 }
 
 void print_message_blocked_procs() {
-    printf("msg procs");
+    printf("msg procs\n");
 }
 
 void print_ready_procs() {
-    printf("Ready procs");
+    int i;
+    PCB *current;
+
+    printf("Processes in the Ready Queue\n");
+    printf("----------------------------\n");
+
+    for (i = 0; i < NUM_PRIORITIES; i++) {
+        if (i == 0) printf("HIGH:\n");
+        else if (i == 1) printf("MEDIUM:\n");
+        else if (i == 2) printf("LOW:\n");
+        else if (i == 3) printf("LOWEST:\n");
+        else if (i == 4) printf("NULL:\n");
+        else printf("INVALID PRIORITY");
+
+        current = g_ready_pq.front[i];
+        while (current != NULL) {
+            printf("\t%d\n", current->m_pid);
+            current = current->mp_next;
+        }
+    }
 }
 
 void k_uart_interrupt() {
-    
-	uint8_t IIR_IntId; // Interrupt ID from IIR
-	LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef*) LPC_UART0;
+
+    uint8_t IIR_IntId; // Interrupt ID from IIR
+    LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef*) LPC_UART0;
 
     while (1) {
 
@@ -547,7 +566,7 @@ void k_uart_interrupt() {
             struct message * ptr;
             g_char_in = pUart->RBR;
             g_buffer[12] = g_char_in; // nasty hack
-            
+
 #ifdef _DEBUG_HOTKEYS
             if (g_char_in == 'r') {
                 print_ready_procs();
@@ -563,7 +582,7 @@ void k_uart_interrupt() {
             ptr->m_text[1] = '\0';
             k_send_message(PROC_ID_KCD, ptr);
 
-            
+
         } else if (IIR_IntId & IIR_THRE) {
         /* THRE Interrupt, transmit holding register becomes empty */
 
@@ -587,7 +606,7 @@ void k_uart_interrupt() {
             }
         } else {  /* not implemented yet */
 #ifdef DEBUG_0
-			uart1_put_string("Should not get here!\n\r");
+            uart1_put_string("Should not get here!\n\r");
 #endif // DEBUG_0
             return;
         }
