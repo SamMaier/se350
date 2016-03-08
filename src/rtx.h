@@ -7,7 +7,6 @@
 
 #define NULL 0
 #define NUM_TEST_PROCS 6
-#define NUM_SYS_PROCS 1
 
 /* Process Priority.
  * The bigger the number is, the lower the priority is

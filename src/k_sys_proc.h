@@ -10,5 +10,6 @@ void set_sys_procs(void);
 void null_process(void);
 void kcd_process(void);
 void crt_process(void);
+void uart_i_process(void);
 
 #endif /* SYS_PROC_H_ */
