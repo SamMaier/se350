@@ -9,8 +9,6 @@
 #include "k_rtx.h"
 #include "k_sys_proc.h"
 
-#define BIT(X) (1<<X)
-
 #ifdef DEBUG_0
 #include "printf.h"
 #endif /* DEBUG_0 */
@@ -146,5 +144,5 @@ void timer_i_process() {
 }
 
 void uart_i_process() {
-    
+
 }
