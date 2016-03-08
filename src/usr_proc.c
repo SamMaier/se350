@@ -4,8 +4,7 @@
 #include "usr_proc.h"
 #include "printf.h"
 
-/* initialization table item */
-PROC_INIT g_test_procs[NUM_TEST_PROCS];
+extern PROC_INIT g_proc_table[];
 
 void (*g_test_proc_funcs[]) (void) = { &proc1, &proc2, &proc3, &proc4, &proc5, &proc6 };
 
@@ -15,10 +14,10 @@ int g_tests_passed;
 void set_test_procs() {
     int i;
     for (i = 0; i < NUM_TEST_PROCS; i++) {
-        g_test_procs[i].m_pid        = (U32) (i + NUM_SYS_PROCS);
-        g_test_procs[i].m_priority   = LOWEST;
-        g_test_procs[i].m_stack_size = 0x100;
-        g_test_procs[i].mpf_start_pc = g_test_proc_funcs[i];
+        g_proc_table[i+1].m_pid        = (U32) (i+1);
+        g_proc_table[i+1].m_priority   = LOWEST;
+        g_proc_table[i+1].m_stack_size = 0x100;
+        g_proc_table[i+1].mpf_start_pc = g_test_proc_funcs[i];
     }
 }
 
@@ -35,16 +34,16 @@ void set_test_procs() {
 void proc1(void) {
     int i;
     int prev_tests_passed;
-    set_process_priority(g_test_procs[0].m_pid, MEDIUM);
+    set_process_priority(g_proc_table[1].m_pid, MEDIUM);
 
     printf("G021_test: START\n");
     printf("G02_test: total 5 tests\n");
 
-    g_current_test = 1;
+    g_current_test = 2;
     g_tests_passed = 0;
 
-    for (i = 1, prev_tests_passed = g_tests_passed; i < NUM_TEST_PROCS; i++, g_current_test++, prev_tests_passed = g_tests_passed) {
-        set_process_priority(g_test_procs[i].m_pid, HIGH);
+    for (i = 2, prev_tests_passed = g_tests_passed; i <= NUM_TEST_PROCS; i++, g_current_test++, prev_tests_passed = g_tests_passed) {
+        set_process_priority(g_proc_table[i].m_pid, HIGH);
 
         if (g_tests_passed > prev_tests_passed) {
             /* test passed */
@@ -68,11 +67,11 @@ void proc1(void) {
  * @brief: tests set_process_priority and get_process_priority
  */
 void proc2(void) {
-    set_process_priority(g_test_procs[g_current_test].m_pid, HIGH);
+    set_process_priority(g_proc_table[g_current_test].m_pid, HIGH);
 
-    if (get_process_priority(g_test_procs[g_current_test].m_pid) == HIGH) g_tests_passed++;
+    if (get_process_priority(g_proc_table[g_current_test].m_pid) == HIGH) g_tests_passed++;
 
-    set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
+    set_process_priority(g_proc_table[g_current_test].m_pid, LOWEST);
 
     while (1) {
         release_processor();
@@ -89,7 +88,7 @@ void proc3(void) {
 
     release_memory_block(mem_blk);
 
-    set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
+    set_process_priority(g_proc_table[g_current_test].m_pid, LOWEST);
 
     while (1) {
         release_processor();
@@ -104,7 +103,7 @@ void proc4(void) {
 
     if (release_memory_block(mem_blk) != -1) g_tests_passed++;
 
-    set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
+    set_process_priority(g_proc_table[g_current_test].m_pid, LOWEST);
 
     while (1) {
         release_processor();
@@ -123,7 +122,7 @@ void proc5(void) {
     release_memory_block(mem_blk_1);
     release_memory_block(mem_blk_2);
 
-    set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
+    set_process_priority(g_proc_table[g_current_test].m_pid, LOWEST);
 
     while (1) {
         release_processor();
@@ -157,7 +156,7 @@ void proc6(void) {
 
     if (passing) g_tests_passed++;
 
-    set_process_priority(g_test_procs[g_current_test].m_pid, LOWEST);
+    set_process_priority(g_proc_table[g_current_test].m_pid, LOWEST);
 
     while (1) {
         release_processor();
@@ -171,21 +170,21 @@ void proc6(void) {
  */
 void proc1(void) {
     g_current_test = 0;
-    set_process_priority(g_test_procs[0].m_pid, LOW);
+    set_process_priority(g_proc_table[1].m_pid, LOW);
 
     printf("G021_test: START\n");
     printf("Tests will explicitly print out failure. No printout = no failure.\n");
 
-    set_process_priority(g_test_procs[2].m_pid, HIGH);
-    set_process_priority(g_test_procs[3].m_pid, MEDIUM);
-    set_process_priority(g_test_procs[4].m_pid, HIGH);
+    set_process_priority(g_proc_table[3].m_pid, HIGH);
+    set_process_priority(g_proc_table[4].m_pid, MEDIUM);
+    set_process_priority(g_proc_table[5].m_pid, HIGH);
     // Starting the sender
     g_current_test++; // Using g_current_test to see if our function is called before, during, or after the sender function
-    set_process_priority(g_test_procs[1].m_pid, MEDIUM);
+    set_process_priority(g_proc_table[2].m_pid, MEDIUM);
     g_current_test++;
 
     // Checking getting 3 from the mailbox
-    set_process_priority(g_test_procs[5].m_pid, MEDIUM);
+    set_process_priority(g_proc_table[6].m_pid, MEDIUM);
 
     printf("Tests finished!\n");
     while (1) {
@@ -203,42 +202,42 @@ void proc2(void) {
     ptr->m_text[0] = 'p';
     ptr->m_text[1] = 'l';
     ptr->m_text[2] = 'e';
-    send_message(g_test_procs[3].m_pid, ptr);
+    send_message(g_proc_table[4].m_pid, ptr);
 
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
     ptr->m_text[0] = 'e';
     ptr->m_text[1] = 's';
     ptr->m_text[2] = 'e';
-    send_message(g_test_procs[4].m_pid, ptr);
+    send_message(g_proc_table[5].m_pid, ptr);
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
     ptr->m_text[0] = 'd';
     ptr->m_text[1] = 'o';
     ptr->m_text[2] = 'n';
-    send_message(g_test_procs[4].m_pid, ptr);
+    send_message(g_proc_table[5].m_pid, ptr);
 
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
     ptr->m_text[0] = 't';
     ptr->m_text[1] = ' ';
     ptr->m_text[2] = 'f';
-    send_message(g_test_procs[5].m_pid, ptr);
+    send_message(g_proc_table[6].m_pid, ptr);
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
     ptr->m_text[0] = 'a';
     ptr->m_text[1] = 'i';
     ptr->m_text[2] = 'l';
-    send_message(g_test_procs[5].m_pid, ptr);
+    send_message(g_proc_table[6].m_pid, ptr);
     ptr = (struct message *) request_memory_block();
     ptr->m_type = DEFAULT;
     ptr->m_text[0] = ' ';
     ptr->m_text[1] = 'u';
     ptr->m_text[2] = 's';
-    // send_message(g_test_procs[5].m_pid, ptr);
-    send_message_delayed(g_test_procs[5].m_pid, ptr, 50);
+    // send_message(g_proc_table[6].m_pid, ptr);
+    send_message_delayed(g_proc_table[6].m_pid, ptr, 50);
 
-    set_process_priority(g_test_procs[1].m_pid, LOWEST);
+    set_process_priority(g_proc_table[2].m_pid, LOWEST);
     while (1) {
         release_processor();
     }
@@ -272,7 +271,7 @@ void proc4(void) {
     release_memory_block(msg);
 
     printf("Process 4 finished.\n");
-    set_process_priority(g_test_procs[3].m_pid, LOWEST);
+    set_process_priority(g_proc_table[4].m_pid, LOWEST);
     while (1) {
         release_processor();
     }
@@ -292,11 +291,11 @@ void proc5(void) {
         printf("Process 5 FAILED, interrupt sender.\n");
     }
 
-    if (msg->m_text[0] != 'e' || msg->m_text[1] != 's' || msg->m_text[2] != 'e' || sender_id != g_test_procs[1].m_pid) {
+    if (msg->m_text[0] != 'e' || msg->m_text[1] != 's' || msg->m_text[2] != 'e' || sender_id != g_proc_table[2].m_pid) {
         printf("Process 5 FAILED - reception of first message incorrect.\n");
     }
     msg = (struct message *)receive_message(&sender_id);
-    if (msg->m_text[0] != 'd' || msg->m_text[1] != 'o' || msg->m_text[2] != 'n' || sender_id != g_test_procs[1].m_pid) {
+    if (msg->m_text[0] != 'd' || msg->m_text[1] != 'o' || msg->m_text[2] != 'n' || sender_id != g_proc_table[2].m_pid) {
         printf("Process 5 FAILED - reception of second message incorrect.\n");
     }
 
@@ -307,7 +306,7 @@ void proc5(void) {
     }
 
     printf("Process 5 finished.\n");
-    set_process_priority(g_test_procs[4].m_pid, LOWEST);
+    set_process_priority(g_proc_table[5].m_pid, LOWEST);
     while (1) {
         release_processor();
     }
@@ -323,22 +322,22 @@ void proc6(void) {
         printf("Process 6 FAILED, did not recieve messages after sending finished.\n");
     }
     msg = (struct message *)receive_message(&sender_id);
-    if (msg->m_text[0] != 't' || msg->m_text[1] != ' ' || msg->m_text[2] != 'f' || sender_id != g_test_procs[1].m_pid) {
+    if (msg->m_text[0] != 't' || msg->m_text[1] != ' ' || msg->m_text[2] != 'f' || sender_id != g_proc_table[2].m_pid) {
         printf("Process 6 FAILED - reception of first message incorrect.\n");
     }
     msg = (struct message *)receive_message(&sender_id);
-    if (msg->m_text[0] != 'a' || msg->m_text[1] != 'i' || msg->m_text[2] != 'l' || sender_id != g_test_procs[1].m_pid) {
+    if (msg->m_text[0] != 'a' || msg->m_text[1] != 'i' || msg->m_text[2] != 'l' || sender_id != g_proc_table[2].m_pid) {
         printf("Process 6 FAILED - reception of second message incorrect.\n");
     }
     msg = (struct message *)receive_message(&sender_id);
-    if (msg->m_text[0] != ' ' || msg->m_text[1] != 'u' || msg->m_text[2] != 's' || sender_id != g_test_procs[1].m_pid) {
+    if (msg->m_text[0] != ' ' || msg->m_text[1] != 'u' || msg->m_text[2] != 's' || sender_id != g_proc_table[2].m_pid) {
         printf("Process 6 FAILED - reception of third message incorrect.\n");
     }
 
     release_memory_block(msg);
 
     printf("Process 6 finished.\n");
-    set_process_priority(g_test_procs[5].m_pid, LOWEST);
+    set_process_priority(g_proc_table[6].m_pid, LOWEST);
     while (1) {
         release_processor();
     }
