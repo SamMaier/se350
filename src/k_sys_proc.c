@@ -174,7 +174,6 @@ void uart_i_process() {
             struct message * ptr;
             g_char_in = pUart->RBR;
 
-#define _DEBUG_HOTKEYS
 #ifdef _DEBUG_HOTKEYS
             if (g_char_in == 'r') {
                 print_ready_procs();
