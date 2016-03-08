@@ -19,7 +19,15 @@ void set_test_procs() {
         g_proc_table[i+1].m_stack_size = 0x100;
         g_proc_table[i+1].mpf_start_pc = g_test_proc_funcs[i];
     }
+
+    /* wall clock process */
+    g_proc_table[PROC_ID_WALL_CLOCK].m_pid        = -1; // TODO
+    g_proc_table[PROC_ID_WALL_CLOCK].m_priority   = LOWEST;
+    g_proc_table[PROC_ID_WALL_CLOCK].m_stack_size = 0x100;
+    g_proc_table[PROC_ID_WALL_CLOCK].mpf_start_pc = &wall_clock_process;
 }
+
+void wall_clock_process() {}
 
 /* Possible tests */
 //#define PART_ONE_TESTS
