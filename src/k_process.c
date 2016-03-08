@@ -31,6 +31,7 @@ PQ g_blocked_pq;
 PQ g_ready_pq;
 
 volatile int timer_i_proc_pending = 0;
+volatile int uart_i_proc_pending = 0;
 
 /* check if a given priority has no processes */
 int pq_is_priority_empty(const PQ* pq, const int priority) {
@@ -211,7 +212,7 @@ PCB *scheduler(void) {
             case NEW:
             case READY:
             case RUN:
-                if (timer_i_proc_pending) {
+                if (timer_i_proc_pending || uart_i_proc_pending) {
                     pq_push_ready_front(old_proc);
                 } else {
                     pq_push_ready(old_proc);
@@ -229,6 +230,9 @@ PCB *scheduler(void) {
         timer_i_proc_pending = 0;
         // set process to timer interrupt process
         return gp_pcbs[14];
+    } else if (uart_i_proc_pending) {
+        uart_i_proc_pending = 0;
+        return gp_pcbs[15]; // TODO: CHANGE THIS TO CONSTANT ONCE MERGED
     }
 
     return pq_pop_ready();
@@ -348,6 +352,12 @@ void k_timer_interrupt() {
     timer_i_proc_pending = 1;
     k_release_processor();
 }
+
+void k_uart_interrupt() {
+    uart_i_proc_pending = 1;
+    k_release_processor();
+}
+
 
 /**
  * Set the priority of a specified process. The process will be pushed back onto
