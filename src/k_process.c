@@ -516,3 +516,41 @@ void k_uart_interrupt() {
     uart_i_proc_pending = 1;
     k_release_processor();
 }
+void print_queue(PQ *q) {
+    int i;
+    PCB *current;
+
+    for (i = 0; i < NUM_PRIORITIES; i++) {
+        if (i == 0) printf("HIGH:\n");
+        else if (i == 1) printf("MEDIUM:\n");
+        else if (i == 2) printf("LOW:\n");
+        else if (i == 3) printf("LOWEST:\n");
+        else if (i == 4) printf("NULL:\n");
+        else printf("INVALID PRIORITY");
+
+        current = q->front[i];
+        while (current != NULL) {
+            printf("\t%d\n", current->m_pid);
+            current = current->mp_next;
+        }
+    }
+}
+
+void print_memory_blocked_procs() {
+    printf("Processes in the Memory Blocked Queue\n");
+    printf("-------------------------------------\n");
+
+    print_queue(&g_blocked_pq);
+}
+
+void print_message_blocked_procs() {
+    printf("msg procs\n");
+}
+
+void print_ready_procs() {
+    printf("Processes in the Ready Queue\n");
+    printf("----------------------------\n");
+
+    print_queue(&g_ready_pq);
+}
+

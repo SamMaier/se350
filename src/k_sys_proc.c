@@ -9,8 +9,6 @@
 #include "k_rtx.h"
 #include "k_sys_proc.h"
 
-#define BIT(X) (1<<X)
-
 #ifdef DEBUG_0
 #include "printf.h"
 #endif /* DEBUG_0 */
@@ -21,6 +19,9 @@ extern void *k_request_memory_block(void);
 extern MSG* dequeue_message(PCB*);
 extern PROC_INIT g_proc_table[NUM_PROCS];
 extern PCB** gp_pcbs;
+extern void print_memory_blocked_procs(void);
+extern void print_message_blocked_procs(void);
+extern void print_ready_procs(void);
 
 /* timer */
 extern U32 g_timer;
@@ -150,19 +151,6 @@ void timer_i_process() {
 
         k_release_processor();
     }
-}
-
-
-void print_memory_blocked_procs() {
-    printf("mem procs");
-}
-
-void print_message_blocked_procs() {
-    printf("msg procs");
-}
-
-void print_ready_procs() {
-    printf("Ready procs");
 }
 
 void uart_i_process() {
