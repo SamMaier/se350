@@ -40,7 +40,7 @@ void proc1(void) {
     g_current_test = 2;
     g_tests_passed = 0;
 
-    for (i = 2, prev_tests_passed = g_tests_passed; i < NUM_TEST_PROCS; i++, g_current_test++, prev_tests_passed = g_tests_passed) {
+    for (i = 2, prev_tests_passed = g_tests_passed; i <= NUM_TEST_PROCS; i++, g_current_test++, prev_tests_passed = g_tests_passed) {
         set_process_priority(g_proc_table[i].m_pid, HIGH);
 
         if (g_tests_passed > prev_tests_passed) {
