@@ -8,11 +8,24 @@
 #define NULL 0
 #define NUM_PROCS 16
 
+/* hard-coded process IDs */
+#define PROC_ID_NULL          0
+#define PROC_ID_A             7
+#define PROC_ID_B             8
+#define PROC_ID_C             9
+#define PROC_ID_SET_PRIORITY 10
+#define PROC_ID_WALL_CLOCK   11
+#define PROC_ID_KCD          12
+#define PROC_ID_CRT          13
+#define PROC_ID_TIMER        14
+#define PROC_ID_UART         15
+
 /* Process Priority.
  * The bigger the number is, the lower the priority is
  * HIDDEN is reserved for the null process
  * INTERRUPT is reserved for interrupt processes
  */
+#define NUM_PRIORITIES 5
 #define HIGH      0
 #define MEDIUM    1
 #define LOW       2
