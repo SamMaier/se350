@@ -13,6 +13,8 @@
 #include "printf.h"
 #endif /* DEBUG_0 */
 
+#define IIR_THRE 0x01
+
 extern int k_release_processor(void);
 extern int k_uart_interrupt(void);
 extern int k_send_message(int, MSG*);
@@ -34,6 +36,9 @@ uint8_t g_send_char = 0;
 uint8_t g_char_in;
 
 MSG* timeout_queue_front = NULL;
+
+int g_kcd_registry[256];
+char g_command_buf[(0x100 - sizeof(int) - 2)];
 
 void set_sys_procs() {
     /* null process */
@@ -73,8 +78,63 @@ void null_process() {
     }
 }
 
-void kcd_process() {
+//void kcd_process() {
+//    while (1) {
+//        k_release_processor();
+//    }
+//}
+
+void kcd_process(void) {
+    int buf_length = 0;
     while (1) {
+        // We send the block received from UART to CRT for output
+        // Alocate a new block to replenish UART
+        // TODO switch on msg type or sender
+        int sender;
+        struct message *msg = (struct message *) k_receive_message(&sender);
+        if (msg->m_type == DEFAULT) {
+            void* block_for_uart;
+            char char_in;
+
+            block_for_uart = k_request_memory_block();
+            k_send_message(PROC_ID_NULL, block_for_uart); // savage
+            char_in = msg->m_text[0];
+
+            if (buf_length >= (0x100 - sizeof(int) - 2)) {
+                char_in = '\r'; // nasty hack to move to next mem block
+            } else {
+                g_command_buf[buf_length] = char_in;
+                buf_length++;
+            }
+            if (char_in == '\r') {
+                g_command_buf[buf_length] = '\n';
+                buf_length++;
+                g_command_buf[buf_length] = '\0';
+                buf_length = 0;
+                strcpy(msg->m_text, "\r\n");
+                msg->m_type = CRT_DISPLAY;
+                k_send_message(PROC_ID_CRT, msg);
+                if (g_command_buf[0] == '%' && g_kcd_registry[g_command_buf[1]] > -1) {
+                    struct message* command_block = (struct message *) k_request_memory_block();
+                    strcpy(command_block->m_text, g_command_buf);
+                    k_send_message(g_kcd_registry[g_command_buf[1]], command_block);
+                }
+            } else {
+                msg->m_text[1] = '\0';
+                msg->m_type = CRT_DISPLAY;
+                k_send_message(PROC_ID_CRT, msg);
+            }
+        } else if (msg->m_type == KCD_REG) {
+            if (msg->m_text[0] == '%') {
+                g_kcd_registry[msg->m_text[1]] = sender;
+            } else {
+                // KCD reg didn't start with a %
+            }
+            k_release_memory_block(msg);
+        }	else {
+            // discarding message
+        }
+
         k_release_processor();
     }
 }
@@ -167,11 +227,12 @@ void timer_i_process() {
 
 void uart_i_process() {
     PCB* uart_pcb = gp_pcbs[PROC_ID_UART];
-    uint8_t IIR_IntId; // Interrupt ID from IIR
-    LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef*) LPC_UART0;
-    char* buffer;
+    char* buffer = NULL;
 
     while (1) {
+        uint8_t IIR_IntId; // Interrupt ID from IIR
+        LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef*) LPC_UART0;
+        
         if (buffer == NULL && uart_pcb->m_message_queue_front != NULL){
             // Can get new message
             MSG* msg = dequeue_message(uart_pcb);
@@ -195,10 +256,10 @@ void uart_i_process() {
                 print_message_blocked_procs();
             }
 #endif
-            ptr = (struct message *) k_request_memory_block();
+            ptr = (struct message *) k_request_memory_block(); // TODO: dequeue message here
 
             if (ptr != NULL) {
-                ptr->m_type = DEFAULT;
+                ptr->m_type = DEFAULT; // TODO: change this to a new type called UART_READ?
                 ptr->m_text[0] = g_char_in;
                 ptr->m_text[1] = '\0';
                 k_send_message(PROC_ID_KCD, ptr);
