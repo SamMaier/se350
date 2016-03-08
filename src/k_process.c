@@ -154,15 +154,15 @@ void process_init() {
         if (g_proc_table[i].m_pid == -1) continue;
 
         (gp_pcbs[i])->mp_next               = NULL;
-        (gp_pcbs[i])->m_pid                 = (g_proc_table[i]).m_pid;
-        (gp_pcbs[i])->m_priority            = (g_proc_table[i]).m_priority;
+        (gp_pcbs[i])->m_pid                 = g_proc_table[i].m_pid;
+        (gp_pcbs[i])->m_priority            = g_proc_table[i].m_priority;
         (gp_pcbs[i])->m_state               = NEW;
         (gp_pcbs[i])->m_message_queue_front = NULL;
         (gp_pcbs[i])->m_message_queue_back  = NULL;
 
-        sp = alloc_stack((g_proc_table[i]).m_stack_size);
+        sp = alloc_stack(g_proc_table[i].m_stack_size);
         *(--sp) = INITIAL_xPSR; // user process initial xPSR
-        *(--sp) = (U32)((g_proc_table[i]).mpf_start_pc); // PC contains the entry point of the process
+        *(--sp) = (U32)(g_proc_table[i].mpf_start_pc); // PC contains the entry point of the process
         for (j = 0; j < 6; j++) { // R0-R3, R12 are cleared with 0
             *(--sp) = 0x0;
         }
