@@ -14,7 +14,7 @@ typedef struct {
 
 /* global variables */
 PCB **gp_pcbs; // array of pcbs
-PCB *gp_current_process = NULL; // always point to the current RUN process
+PCB *gp_current_process = NULL; // always point to the current STATE_RUN process
 
 /* whether to continue to run the process before the UART receive interrupt
 1 means to switch to another process, 0 means to continue the current process
@@ -24,7 +24,7 @@ U32 g_switch_flag = 0;
 /* process initialization table */
 PROC_INIT g_proc_table[NUM_PROCS];
 
-extern void insert_message_delayed(PCB*, MSG*, int);
+extern void insert_message_delayed(PCB*, MSG_BUF*, int);
 
 /* process priority queues */
 PQ g_blocked_pq;
@@ -179,9 +179,9 @@ void process_init() {
         (gp_pcbs[i])->mp_next               = NULL;
         (gp_pcbs[i])->m_pid                 = g_proc_table[i].m_pid;
         (gp_pcbs[i])->m_priority            = g_proc_table[i].m_priority;
-        (gp_pcbs[i])->m_state               = NEW;
-        (gp_pcbs[i])->m_message_queue_front = NULL;
-        (gp_pcbs[i])->m_message_queue_back  = NULL;
+        (gp_pcbs[i])->m_state               = STATE_NEW;
+        (gp_pcbs[i])->mp_msg_queue_front = NULL;
+        (gp_pcbs[i])->mp_msg_queue_back  = NULL;
 
         sp = alloc_stack(g_proc_table[i].m_stack_size);
         *(--sp) = INITIAL_xPSR; // user process initial xPSR
@@ -206,12 +206,12 @@ PCB *scheduler(void) {
     PCB *old_proc = gp_current_process;
     if (old_proc != NULL && old_proc->m_pid >= 1 && old_proc->m_pid <= 6) {
         switch(old_proc->m_state) {
-            case BLOCKED_ON_MEMORY:
-            case BLOCKED_ON_MSG_RECEIVE:
+            case STATE_BLOCKED_MEMORY:
+            case STATE_BLOCKED_MSG:
                 break;
-            case NEW:
-            case READY:
-            case RUN:
+            case STATE_NEW:
+            case STATE_READY:
+            case STATE_RUN:
                 if (timer_i_proc_pending || uart_i_proc_pending) {
                     pq_push_ready_front(old_proc);
                 } else {
@@ -228,10 +228,10 @@ PCB *scheduler(void) {
 
     if (timer_i_proc_pending) {
         timer_i_proc_pending = 0;
-        return gp_pcbs[PROC_ID_TIMER];
+        return gp_pcbs[PID_TIMER_IPROC];
     } else if (uart_i_proc_pending) {
         uart_i_proc_pending = 0;
-        return gp_pcbs[PROC_ID_UART];
+        return gp_pcbs[PID_UART_IPROC];
     }
 
     return pq_pop_ready();
@@ -242,7 +242,7 @@ __asm __new_i_proc_rte() {
 }
 
 /*@brief: switch out old pcb (p_pcb_old), run the new pcb (gp_current_process)
- *@param: p_pcb_old, the old pcb that was in RUN
+ *@param: p_pcb_old, the old pcb that was in STATE_RUN
  *@return: RTX_OK upon success
  *         RTX_ERR upon failure
  *PRE:  p_pcb_old and gp_current_process are pointing to valid PCBs.
@@ -252,20 +252,20 @@ __asm __new_i_proc_rte() {
 int process_switch(PCB *p_pcb_old) {
     PROC_STATE_E state = gp_current_process->m_state;
 
-    if (state == NEW) {
-        if (gp_current_process != p_pcb_old && p_pcb_old->m_state != NEW) {
+    if (state == STATE_NEW) {
+        if (gp_current_process != p_pcb_old && p_pcb_old->m_state != STATE_NEW) {
             switch(p_pcb_old->m_state) {
-            case RUN:
-            case READY:
-                p_pcb_old->m_state = READY;
+            case STATE_RUN:
+            case STATE_READY:
+                p_pcb_old->m_state = STATE_READY;
                 break;
-            case BLOCKED_ON_MEMORY:
-            case BLOCKED_ON_MSG_RECEIVE:
-                // Don't set state to READY
+            case STATE_BLOCKED_MEMORY:
+            case STATE_BLOCKED_MSG:
+                // Don't set state to STATE_READY
                 break;
-            case NEW:
+            case STATE_NEW:
                 #ifdef DEBUG_0
-                printf("process_switch: process has state NEW but shouldn't\n");
+                printf("process_switch: process has state STATE_NEW but shouldn't\n");
                 #endif
                 break;
             default:
@@ -278,7 +278,7 @@ int process_switch(PCB *p_pcb_old) {
             p_pcb_old->mp_sp = (U32 *) __get_MSP();
         }
 
-        gp_current_process->m_state = RUN;
+        gp_current_process->m_state = STATE_RUN;
         __set_MSP((U32) gp_current_process->mp_sp);
 
         if (gp_current_process->m_pid == 0 || gp_current_process->m_pid > 6) {
@@ -290,19 +290,19 @@ int process_switch(PCB *p_pcb_old) {
 
     /* The following will only execute if the if block above is FALSE */
     if (gp_current_process != p_pcb_old) {
-        if (state == READY) {
+        if (state == STATE_READY) {
             switch(p_pcb_old->m_state) {
-            case RUN:
-            case READY:
-                p_pcb_old->m_state = READY;
+            case STATE_RUN:
+            case STATE_READY:
+                p_pcb_old->m_state = STATE_READY;
                 break;
-            case BLOCKED_ON_MEMORY:
-            case BLOCKED_ON_MSG_RECEIVE:
-                // Don't set state to READY
+            case STATE_BLOCKED_MEMORY:
+            case STATE_BLOCKED_MSG:
+                // Don't set state to STATE_READY
                 break;
-            case NEW:
+            case STATE_NEW:
                 #ifdef DEBUG_0
-                printf("process_switch: process has state NEW but shouldn't\n");
+                printf("process_switch: process has state STATE_NEW but shouldn't\n");
                 #endif
                 break;
             default:
@@ -313,7 +313,7 @@ int process_switch(PCB *p_pcb_old) {
             };
 
             p_pcb_old->mp_sp = (U32 *) __get_MSP(); // save the old process's sp
-            gp_current_process->m_state = RUN;
+            gp_current_process->m_state = STATE_RUN;
             __set_MSP((U32) gp_current_process->mp_sp); //switch to the new proc's stack
         } else {
             gp_current_process = p_pcb_old; // revert back to the old proc on error
@@ -373,18 +373,18 @@ int k_set_process_priority(const int process_id, const int priority) {
 
     process->m_priority = priority;
     switch(process->m_state) {
-    case NEW:
-    case READY:
+    case STATE_NEW:
+    case STATE_READY:
         pq_push_ready(process);
         break;
-    case BLOCKED_ON_MSG_RECEIVE:
+    case STATE_BLOCKED_MSG:
         break;
-    case BLOCKED_ON_MEMORY:
+    case STATE_BLOCKED_MEMORY:
         pq_push_blocked(process);
         break;
-    case RUN:
+    case STATE_RUN:
         #ifdef DEBUG_0
-        printf("k_set_process_priority: process has state RUN but is not current running process\n");
+        printf("k_set_process_priority: process has state STATE_RUN but is not current running process\n");
         #endif
         break;
     default:
@@ -411,48 +411,48 @@ int k_get_process_priority(const int process_id) {
 }
 
 /* Adds a given message to the target's message queue*/
-void enqueue_message(PCB* target, MSG* message) {
+void enqueue_message(PCB* target, MSG_BUF* message) {
     message->mp_next = NULL;
-    if (target->m_message_queue_back == NULL) {
-        target->m_message_queue_front = message;
+    if (target->mp_msg_queue_back == NULL) {
+        target->mp_msg_queue_front = message;
     } else {
-        target->m_message_queue_back->mp_next = message;
+        target->mp_msg_queue_back->mp_next = message;
     }
-    target->m_message_queue_back = message;
+    target->mp_msg_queue_back = message;
 }
 
-MSG* dequeue_message(PCB* target) {
-    MSG* return_val = target->m_message_queue_front;
+MSG_BUF* dequeue_message(PCB* target) {
+    MSG_BUF* return_val = target->mp_msg_queue_front;
 
     if (return_val == NULL) {
         // Empty queue, don't do anything
-    } else if (return_val == target->m_message_queue_back) {
+    } else if (return_val == target->mp_msg_queue_back) {
         // Queue with exactly one element
-        target->m_message_queue_front = NULL;
-        target->m_message_queue_back = NULL;
+        target->mp_msg_queue_front = NULL;
+        target->mp_msg_queue_back = NULL;
     } else {
         // Queue with 2 or more elements
-        target->m_message_queue_front = return_val->mp_next;
+        target->mp_msg_queue_front = return_val->mp_next;
     }
 
     return return_val;
 }
 
-MSG* create_message_headers(void* message_envelope, int target_proc_id) {
-    MSG* message = (MSG*) message_envelope;
+MSG_BUF* create_message_headers(void* message_envelope, int target_proc_id) {
+    MSG_BUF* message = (MSG_BUF*) message_envelope;
     message->mp_next = NULL;
-    message->m_send_id = gp_current_process->m_pid;
-    message->m_receive_id = target_proc_id;
+    message->m_send_pid = gp_current_process->m_pid;
+    message->m_recv_pid = target_proc_id;
     message->m_expiry = 0;
     return message;
 }
 
-int k_send_message(int process_id, MSG *message) {
+int k_send_message(int process_id, MSG_BUF *message) {
     PCB* target = gp_pcbs[process_id];
     enqueue_message(target, message);
 
-    if (target->m_state == BLOCKED_ON_MSG_RECEIVE) {
-        target->m_state = READY;
+    if (target->m_state == STATE_BLOCKED_MSG) {
+        target->m_state = STATE_READY;
         pq_push_ready(target);
         // DO WE CALL RELEASE HERE??? WHAT IF CURR PROC HAS HIGHEST PRIORITY
         // slides don't have this call
@@ -470,12 +470,12 @@ int k_send_message(int process_id, MSG *message) {
  * Preempts if higher priority proc waiting for message
  */
 int k_send_message_envelope(int process_id, void* message_envelope) {
-    MSG* message = create_message_headers(message_envelope, process_id);
+    MSG_BUF* message = create_message_headers(message_envelope, process_id);
     return k_send_message(process_id, message);
 }
 
 int k_send_message_delayed(int process_id, void* message_envelope, int delay) {
-    MSG* message = create_message_headers(message_envelope, process_id);
+    MSG_BUF* message = create_message_headers(message_envelope, process_id);
     PCB* target;
 
     if (delay == 0) {
@@ -493,15 +493,15 @@ int k_send_message_delayed(int process_id, void* message_envelope, int delay) {
  * sets sender_id's value to the id of the proc ID of the sender
  */
 void *k_receive_message(int *sender_id) {
-    MSG* message = dequeue_message(gp_current_process);
+    MSG_BUF* message = dequeue_message(gp_current_process);
     while (message == NULL) {
         // No waiting messages, so preempt this process
-        gp_current_process->m_state = BLOCKED_ON_MSG_RECEIVE;
+        gp_current_process->m_state = STATE_BLOCKED_MSG;
         k_release_processor();
         message = dequeue_message(gp_current_process);
     }
     if (sender_id != NULL) {
-        *sender_id = message->m_send_id;
+        *sender_id = message->m_send_pid;
     }
     return (void*)message;
 }
@@ -556,7 +556,7 @@ void print_message_blocked_procs() {
 
         currentPCB = gp_pcbs[current.m_pid];
 
-        if (currentPCB->m_state == BLOCKED_ON_MSG_RECEIVE) {
+        if (currentPCB->m_state == STATE_BLOCKED_MSG) {
             printf("\t%d\n", current.m_pid);
         }
     }

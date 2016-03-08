@@ -1,67 +1,6 @@
 #ifndef RTX_H_
 #define RTX_H_
 
-/* RTX status codes */
-#define RTX_ERR -1
-#define RTX_OK  0
-
-#define NULL 0
-#define NUM_TEST_PROCS 6
-
-/* hard-coded process IDs */
-#define PROC_ID_NULL          0
-#define PROC_ID_A             7
-#define PROC_ID_B             8
-#define PROC_ID_C             9
-#define PROC_ID_SET_PRIORITY 10
-#define PROC_ID_WALL_CLOCK   11
-#define PROC_ID_KCD          12
-#define PROC_ID_CRT          13
-#define PROC_ID_TIMER        14
-#define PROC_ID_UART         15
-
-/* Process Priority.
- * The bigger the number is, the lower the priority is
- * HIDDEN is reserved for the null process
- * INTERRUPT is reserved for interrupt processes
- */
-#define HIGH      0
-#define MEDIUM    1
-#define LOW       2
-#define LOWEST    3
-#define HIDDEN    4
-#define INTERRUPT 5
-
-/* Types of message envelopes */
-#define DEFAULT 0
-#define KCD_REG 1
-#define CRT_DISPLAY 2
-
-/* Types */
-typedef unsigned int U32;
-typedef unsigned char U8;
-
-/* initialization table item */
-typedef struct proc_init {
-    int m_pid;               // process id
-    int m_priority;          // initial priority, not used in this example.
-    int m_stack_size;        // size of stack in words
-    void (*mpf_start_pc) (); // entry point of the process
-} PROC_INIT;
-
-/* message envelope object */
-#define K_MSG_ENV
-typedef struct message {
-#ifdef K_MSG_ENV
-    void *mp_next;    // pointer for queue towards back of queue
-    int m_send_id;    // int process ID of sending process
-    int m_receive_id; // int process ID of receiving process
-    int m_data[5];    // other spot for data. Unused right now - not sure why it is suggested.
-#endif
-    int m_type;       // DEFAULT (normal) or KCD_REG (register key command)
-    char m_text[4];   // Array of characters for message. I'm not sure why they say it is size one.
-} MSG;
-
 /* ----- RTX User API ----- */
 #define __SVC_0  __svc_indirect(0)
 
@@ -102,5 +41,4 @@ extern int k_get_process_priority(int);
 #define get_process_priority(process_id) _get_process_priority((U32)k_get_process_priority, process_id)
 extern int _get_process_priority(U32 p_func, int process_id) __SVC_0;
 
-
-#endif /* !RTX_H_ */
+#endif // RTX_H_
