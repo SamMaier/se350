@@ -7,7 +7,6 @@
 #include "printf.h"
 #endif
 
-
 typedef struct {
     PCB* front[NUM_PRIORITIES];
     PCB* back[NUM_PRIORITIES];
@@ -537,14 +536,30 @@ void print_queue(PQ *q) {
 }
 
 void print_memory_blocked_procs() {
-    printf("Processes in the Memory Blocked Queue\n");
-    printf("-------------------------------------\n");
+    printf("Processes blocked on memory\n");
+    printf("---------------------------\n");
 
     print_queue(&g_blocked_pq);
 }
 
 void print_message_blocked_procs() {
-    printf("msg procs\n");
+    int i;
+    PROC_INIT current;
+    PCB* currentPCB;
+
+    printf("Processes blocked on receive\n");
+    printf("----------------------------\n");
+
+    for (i = 0; i < NUM_PROCS; i++) {
+        current = g_proc_table[i];
+        if (current.m_pid == -1) continue;
+
+        currentPCB = gp_pcbs[current.m_pid];
+
+        if (currentPCB->m_state == BLOCKED_ON_MSG_RECEIVE) {
+            printf("\t%d\n", current.m_pid);
+        }
+    }
 }
 
 void print_ready_procs() {
