@@ -13,8 +13,6 @@
 #include "printf.h"
 #endif /* DEBUG_0 */
 
-#define IIR_THRE 0x01
-
 extern int k_release_processor(void);
 extern int k_uart_interrupt(void);
 extern int k_send_message(int, MSG_BUF*);
