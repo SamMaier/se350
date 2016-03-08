@@ -8,8 +8,8 @@
 #endif
 
 typedef struct {
-    PCB* front[5];
-    PCB* back[5];
+    PCB* front[NUM_PRIORITIES];
+    PCB* back[NUM_PRIORITIES];
 } PQ;
 
 /* global variables */
@@ -163,7 +163,7 @@ void process_init() {
     set_sys_procs();
 
     /* initialize priority queues */
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < NUM_PRIORITIES; i++) {
         g_blocked_pq.front[i] = NULL;
         g_blocked_pq.back[i]  = NULL;
         g_ready_pq.front[i]   = NULL;
@@ -227,8 +227,7 @@ PCB *scheduler(void) {
 
     if (timer_i_proc_pending) {
         timer_i_proc_pending = 0;
-        // set process to timer interrupt process
-        return gp_pcbs[14];
+        return gp_pcbs[PROC_ID_TIMER];
     }
 
     return pq_pop_ready();

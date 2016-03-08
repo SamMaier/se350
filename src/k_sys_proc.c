@@ -24,34 +24,34 @@ MSG* timeout_queue_front = NULL;
 
 void set_sys_procs() {
     /* null process */
-    g_proc_table[0].m_pid = 0;
-    g_proc_table[0].m_priority = HIDDEN;
-    g_proc_table[0].m_stack_size = 0x100;
-    g_proc_table[0].mpf_start_pc = &null_process;
+    g_proc_table[PROC_ID_NULL].m_pid = PROC_ID_NULL;
+    g_proc_table[PROC_ID_NULL].m_priority = HIDDEN;
+    g_proc_table[PROC_ID_NULL].m_stack_size = 0x100;
+    g_proc_table[PROC_ID_NULL].mpf_start_pc = &null_process;
 
-    /* keyboard decoder process */
-    g_proc_table[12].m_pid = -1; // TODO
-    g_proc_table[12].m_priority = HIGH;
-    g_proc_table[12].m_stack_size = 0x100;
-    g_proc_table[12].mpf_start_pc = &kcd_process;
+    /* keyboard command decoder process */
+    g_proc_table[PROC_ID_KCD].m_pid = -1; // TODO
+    g_proc_table[PROC_ID_KCD].m_priority = HIGH;
+    g_proc_table[PROC_ID_KCD].m_stack_size = 0x100;
+    g_proc_table[PROC_ID_KCD].mpf_start_pc = &kcd_process;
 
     /* CRT display process */
-    g_proc_table[13].m_pid = -1; // TODO
-    g_proc_table[13].m_priority = HIGH;
-    g_proc_table[13].m_stack_size = 0x100;
-    g_proc_table[13].mpf_start_pc = &crt_process;
+    g_proc_table[PROC_ID_CRT].m_pid = -1; // TODO
+    g_proc_table[PROC_ID_CRT].m_priority = HIGH;
+    g_proc_table[PROC_ID_CRT].m_stack_size = 0x100;
+    g_proc_table[PROC_ID_CRT].mpf_start_pc = &crt_process;
 
     /* timer interrupt process */
-    g_proc_table[14].m_pid = 14;
-    g_proc_table[14].m_priority = INTERRUPT;
-    g_proc_table[14].m_stack_size = 0x0;
-    g_proc_table[14].mpf_start_pc = &timer_i_process;
+    g_proc_table[PROC_ID_TIMER].m_pid = PROC_ID_TIMER;
+    g_proc_table[PROC_ID_TIMER].m_priority = INTERRUPT;
+    g_proc_table[PROC_ID_TIMER].m_stack_size = 0x0;
+    g_proc_table[PROC_ID_TIMER].mpf_start_pc = &timer_i_process;
 
     /* UART interrupt process */
-    g_proc_table[15].m_pid = 15;
-    g_proc_table[15].m_priority = INTERRUPT;
-    g_proc_table[15].m_stack_size = 0x0;
-    g_proc_table[15].mpf_start_pc = &uart_i_process;
+    g_proc_table[PROC_ID_UART].m_pid = PROC_ID_UART;
+    g_proc_table[PROC_ID_UART].m_priority = INTERRUPT;
+    g_proc_table[PROC_ID_UART].m_stack_size = 0x0;
+    g_proc_table[PROC_ID_UART].mpf_start_pc = &uart_i_process;
 }
 
 void null_process() {
