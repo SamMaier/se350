@@ -7,6 +7,8 @@
 #include "printf.h"
 #endif
 
+#define _DEBUG_HOTKEYS
+
 typedef struct {
     PCB* front[NUM_PRIORITIES];
     PCB* back[NUM_PRIORITIES];
@@ -25,10 +27,18 @@ U32 g_switch_flag = 0;
 PROC_INIT g_proc_table[NUM_PROCS];
 
 extern void insert_message_delayed(PCB*, MSG*, int);
+extern void *k_request_memory_block(void);
 
 /* process priority queues */
 PQ g_blocked_pq;
 PQ g_ready_pq;
+
+/* UART interrupt globals */
+uint8_t g_buffer[]= "You Typed a Q\n\r";
+uint8_t *gp_buffer = g_buffer;
+uint8_t g_send_char = 0;
+uint8_t g_char_in;
+uint8_t g_char_out;
 
 volatile int timer_i_proc_pending = 0;
 volatile int uart_i_proc_pending = 0;
@@ -346,75 +356,6 @@ int k_release_processor(void) {
     process_switch(p_pcb_old);
     return RTX_OK;
 }
-
-void k_timer_interrupt() {
-    timer_i_proc_pending = 1;
-    k_release_processor();
-}
-
-void k_uart_interrupt() {
-    
-	uint8_t IIR_IntId; // Interrupt ID from IIR
-	LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef*) LPC_UART0;
-
-    while (1) {
-
-        /* Reading IIR automatically acknowledges the interrupt */
-        IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR
-        if (IIR_IntId & IIR_RDA) { // Receive Data Avaialbe
-            /* read UART. Read RBR will clear the interrupt */
-            struct message * ptr;
-            g_char_in = pUart->RBR;
-            g_buffer[12] = g_char_in; // nasty hack
-            
-#ifdef _DEBUG_HOTKEYS
-            if (g_char_in == 'r') {
-                print_ready_procs();
-            } else if (g_char_in == 'm') {
-                print_memory_blocked_procs();
-            } else if (g_char_in == 's') {
-                print_message_blocked_procs();
-            }
-#endif
-            ptr = (struct message *) request_memory_block();
-            ptr->m_type = DEFAULT;
-            ptr->m_text[0] = g_char_in;
-            ptr->m_text[1] = '\0';
-            send_message(KCD_PROC, ptr);
-
-            
-        } else if (IIR_IntId & IIR_THRE) {
-        /* THRE Interrupt, transmit holding register becomes empty */
-
-            if (*gp_buffer != '\0' ) {
-                g_char_out = *gp_buffer;
-#ifdef DEBUG_0
-                // uart1_put_string("Writing a char = ");
-                // uart1_put_char(g_char_out);
-                // uart1_put_string("\n\r");
-
-                // you could use the printf instead
-                printf("Writing a char = %c \n\r", g_char_out);
-#endif // DEBUG_0
-                pUart->THR = g_char_out;
-                gp_buffer++;
-            } else {
-                pUart->IER ^= IER_THRE; // toggle the IER_THRE bit
-                pUart->THR = '\0';
-                g_send_char = 0;
-                gp_buffer = g_buffer;
-            }
-        } else {  /* not implemented yet */
-#ifdef DEBUG_0
-			uart1_put_string("Should not get here!\n\r");
-#endif // DEBUG_0
-            return;
-        }
-        k_release_processor();
-    }
-}
-
-
 /**
  * Set the priority of a specified process. The process will be pushed back onto
  * the priority queue. If the process is unblocked and the new priority is
@@ -573,4 +514,83 @@ void *k_receive_message(int *sender_id) {
         *sender_id = message->m_send_id;
     }
     return (void*)message;
+}
+
+void k_timer_interrupt() {
+    timer_i_proc_pending = 1;
+    k_release_processor();
+}
+
+void print_memory_blocked_procs() {
+    printf("mem procs");
+}
+
+void print_message_blocked_procs() {
+    printf("msg procs");
+}
+
+void print_ready_procs() {
+    printf("Ready procs");
+}
+
+void k_uart_interrupt() {
+    
+	uint8_t IIR_IntId; // Interrupt ID from IIR
+	LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef*) LPC_UART0;
+
+    while (1) {
+
+        /* Reading IIR automatically acknowledges the interrupt */
+        IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR
+        if (IIR_IntId & IIR_RDA) { // Receive Data Avaialbe
+            /* read UART. Read RBR will clear the interrupt */
+            struct message * ptr;
+            g_char_in = pUart->RBR;
+            g_buffer[12] = g_char_in; // nasty hack
+            
+#ifdef _DEBUG_HOTKEYS
+            if (g_char_in == 'r') {
+                print_ready_procs();
+            } else if (g_char_in == 'm') {
+                print_memory_blocked_procs();
+            } else if (g_char_in == 's') {
+                print_message_blocked_procs();
+            }
+#endif
+            ptr = (struct message *) k_request_memory_block();
+            ptr->m_type = DEFAULT;
+            ptr->m_text[0] = g_char_in;
+            ptr->m_text[1] = '\0';
+            k_send_message(PROC_ID_KCD, ptr);
+
+            
+        } else if (IIR_IntId & IIR_THRE) {
+        /* THRE Interrupt, transmit holding register becomes empty */
+
+            if (*gp_buffer != '\0' ) {
+                g_char_out = *gp_buffer;
+#ifdef DEBUG_0
+                // uart1_put_string("Writing a char = ");
+                // uart1_put_char(g_char_out);
+                // uart1_put_string("\n\r");
+
+                // you could use the printf instead
+                printf("Writing a char = %c \n\r", g_char_out);
+#endif // DEBUG_0
+                pUart->THR = g_char_out;
+                gp_buffer++;
+            } else {
+                pUart->IER ^= IER_THRE; // toggle the IER_THRE bit
+                pUart->THR = '\0';
+                g_send_char = 0;
+                gp_buffer = g_buffer;
+            }
+        } else {  /* not implemented yet */
+#ifdef DEBUG_0
+			uart1_put_string("Should not get here!\n\r");
+#endif // DEBUG_0
+            return;
+        }
+        k_release_processor();
+    }
 }

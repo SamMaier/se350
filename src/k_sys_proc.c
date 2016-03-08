@@ -24,12 +24,6 @@ extern U32 g_timer;
 
 MSG* timeout_queue_front = NULL;
 
-uint8_t g_buffer[]= "You Typed a Q\n\r";
-uint8_t *gp_buffer = g_buffer;
-uint8_t g_send_char = 0;
-uint8_t g_char_in;
-uint8_t g_char_out;
-
 void set_sys_procs() {
     /* null process */
     g_proc_table[PROC_ID_NULL].m_pid = PROC_ID_NULL;
