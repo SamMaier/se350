@@ -87,7 +87,7 @@ void wall_clock_process() {
                 running = 1;
                 version++;
                 command->mtext[0] = version;
-                delayed_send(PID_CLOCK, command, 30);
+                delayed_send(PID_CLOCK, command, 1000);
                 wall_clock_print(clock);
             } else if (command->mtext[2] == 'S'
                     && command->mtext[3] == ' '
@@ -101,7 +101,7 @@ void wall_clock_process() {
                 running = 1;
                 version++;
                 command->mtext[0] = version;
-                delayed_send(PID_CLOCK, command, 30);
+                delayed_send(PID_CLOCK, command, 1000);
                 wall_clock_print(clock);
             } else if (command->mtext[2] == 'T') {
                 running = 0;
@@ -114,7 +114,7 @@ void wall_clock_process() {
             if (command->mtext[0] == version && running) {
                 clock++;
                 clock %= 24 * 60 * 60;
-                delayed_send(PID_CLOCK, command, 30);
+                delayed_send(PID_CLOCK, command, 1000);
                 wall_clock_print(clock);
             } else {
                 release_memory_block(command);
@@ -362,7 +362,7 @@ void proc2(void) {
     ptr->mtext[0] = ' ';
     ptr->mtext[1] = 'u';
     ptr->mtext[2] = 's';
-    delayed_send(g_proc_table[6].m_pid, ptr, 30 * 3); // 3 second delay
+    delayed_send(g_proc_table[6].m_pid, ptr, 1000 * 3); // 3 second delay
 
     set_process_priority(g_proc_table[1].m_pid, HIGH);
     set_process_priority(g_proc_table[2].m_pid, LOWEST);
