@@ -59,13 +59,13 @@ void set_sys_procs() {
     /* timer interrupt process */
     g_proc_table[PID_TIMER_IPROC].m_pid = PID_TIMER_IPROC;
     g_proc_table[PID_TIMER_IPROC].m_priority = INTERRUPT;
-    g_proc_table[PID_TIMER_IPROC].m_stack_size = 0x0;
+    g_proc_table[PID_TIMER_IPROC].m_stack_size = 0x100;
     g_proc_table[PID_TIMER_IPROC].mpf_start_pc = &timer_i_process;
 
     /* UART interrupt process */
     g_proc_table[PID_UART_IPROC].m_pid = PID_UART_IPROC;
     g_proc_table[PID_UART_IPROC].m_priority = INTERRUPT;
-    g_proc_table[PID_UART_IPROC].m_stack_size = 0x0;
+    g_proc_table[PID_UART_IPROC].m_stack_size = 0x100;
     g_proc_table[PID_UART_IPROC].mpf_start_pc = &uart_i_process;
 }
 
@@ -223,18 +223,31 @@ void timer_i_process() {
     }
 }
 
+__asm push_registers() {
+    PUSH{r4-r11}
+    BX LR
+}
+
+__asm pop_registers() {
+    POP{r4-r11}
+    BX LR
+}
+
 void uart_i_process() {
     PCB* uart_pcb = gp_pcbs[PID_UART_IPROC];
-    char* buffer = NULL;
+    char buffer[0x100 - sizeof(int) - 2];
+    int isBufferFull = 0;
+    int i = 0;
 
     while (1) {
         uint8_t IIR_IntId; // Interrupt ID from IIR
         LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef*) LPC_UART0;
 
-        if (buffer == NULL && uart_pcb->mp_msg_queue_front != NULL){
+        if (!isBufferFull && uart_pcb->mp_msg_queue_front != NULL){
             // Can get new message
             MSG_BUF* msg = dequeue_message(uart_pcb);
             strcpy(buffer, msg->mtext);
+            isBufferFull = 1;
             k_release_memory_block(msg);
             pUart->IER |= IER_THRE; // enable whatever THRE is
         }
@@ -269,14 +282,15 @@ void uart_i_process() {
             }
         } else if (IIR_IntId & IIR_THRE) {
         /* THRE Interrupt, transmit holding register becomes empty */
-            if (buffer != NULL) {
-                if (*buffer == '\0' ) {
-                    buffer = NULL;
+            if (isBufferFull) {
+                if (buffer[i] == '\0' ) {
+                    isBufferFull = 0;
+                    i = 0;
                     pUart->IER ^= IER_THRE; // toggle the IER_THRE bit
                     pUart->THR = '\0';
                 } else {
-                    pUart->THR = *buffer;
-                    buffer++;
+                    pUart->THR = buffer[i];
+                    i++;
                 }
             }
         } else {  /* not implemented yet */
@@ -285,6 +299,8 @@ void uart_i_process() {
 #endif // DEBUG_0
             return;
         }
+        push_registers();
         k_release_processor();
+        pop_registers();
     }
 }
