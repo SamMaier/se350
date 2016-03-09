@@ -9,6 +9,7 @@
 #include "uart_polling.h"
 #include "k_rtx.h"
 #include "k_sys_proc.h"
+#include "k_memory.h"
 
 #ifdef DEBUG_0
 #include "printf.h"
@@ -36,7 +37,7 @@ uint8_t g_char_in;
 MSG_BUF* timeout_queue_front = NULL;
 
 int g_kcd_registry[256];
-char g_command_buf[(0x100 - sizeof(int) - 2)];
+char g_command_buf[(MEMORY_BLOCK_SIZE - 2 - sizeof(int))];
 
 void set_sys_procs() {
     /* null process */
@@ -92,7 +93,7 @@ void kcd_process(void) {
             char char_in;
             char_in = msg->mtext[0];
 
-            if (buf_length >= (0x100 - sizeof(int) - 2)) {
+            if (buf_length >= (MEMORY_BLOCK_SIZE - 2 - sizeof(int))) {
                 char_in = '\r'; // nasty hack to move to next mem block
             } else {
                 g_command_buf[buf_length] = char_in;
@@ -241,7 +242,7 @@ void timer_i_process() {
 
 void uart_i_process() {
     PCB* uart_pcb = gp_pcbs[PID_UART_IPROC];
-    char buffer[0x100 - sizeof(int) - 2];
+    char buffer[MEMORY_BLOCK_SIZE - 2 - sizeof(int)];
     int isBufferFull = 0;
     int i = 0;
 
