@@ -36,8 +36,8 @@ uint8_t g_char_in;
 
 MSG_BUF* timeout_queue_front = NULL;
 
-int g_kcd_registry[256];
-char g_command_buf[(MEMORY_BLOCK_SIZE - 2 - sizeof(int))];
+int g_KCD_REG[256];
+char g_command_buffer[(MEMORY_BLOCK_SIZE - 2 - sizeof(int))];
 
 void set_sys_procs() {
     /* null process */
@@ -47,13 +47,13 @@ void set_sys_procs() {
     g_proc_table[PID_NULL].mpf_start_pc = &null_process;
 
     /* keyboard command decoder process */
-    g_proc_table[PID_KCD].m_pid = PID_KCD; // TODO
+    g_proc_table[PID_KCD].m_pid = PID_KCD;
     g_proc_table[PID_KCD].m_priority = HIGH;
     g_proc_table[PID_KCD].m_stack_size = 0x100;
     g_proc_table[PID_KCD].mpf_start_pc = &kcd_process;
 
     /* CRT display process */
-    g_proc_table[PID_CRT].m_pid = PID_CRT; // TODO
+    g_proc_table[PID_CRT].m_pid = PID_CRT;
     g_proc_table[PID_CRT].m_priority = HIGH;
     g_proc_table[PID_CRT].m_stack_size = 0x100;
     g_proc_table[PID_CRT].mpf_start_pc = &crt_process;
@@ -81,12 +81,9 @@ void kcd_process(void) {
     int buf_length = 0;
     int i;
     for (i = 0; i < 256; i++) {
-        g_kcd_registry[i] = -1;
+        g_KCD_REG[i] = -1;
     }
     while (1) {
-        // We send the block received from UART to CRT for output
-        // Alocate a new block to replenish UART
-        // TODO switch on msg type or sender
         int sender;
         MSG_BUF *msg = (MSG_BUF *) k_receive_message(&sender);
         if (msg->mtype == DEFAULT) {
@@ -94,28 +91,28 @@ void kcd_process(void) {
             char_in = msg->mtext[0];
 
             if (buf_length >= (MEMORY_BLOCK_SIZE - 2 - sizeof(int))) {
-                char_in = '\r'; // nasty hack to move to next mem block
+                char_in = '\r';
             } else {
-                g_command_buf[buf_length] = char_in;
+                g_command_buffer[buf_length] = char_in;
                 buf_length++;
             }
             if (char_in == '\r') {
-                g_command_buf[buf_length] = '\n';
+                g_command_buffer[buf_length] = '\n';
                 buf_length++;
-                g_command_buf[buf_length] = '\0';
+                g_command_buffer[buf_length] = '\0';
                 buf_length = 0;
                 // Echoing back to the display
                 strcpy(msg->mtext, "\r\n");
                 msg->mtype = CRT_DISPLAY;
                 k_send_message(PID_CRT, msg);
-                if (g_command_buf[0] == '%' && g_kcd_registry[g_command_buf[1]] > -1) {
+                if (g_command_buffer[0] == '%' && g_KCD_REG[g_command_buffer[1]] > -1) {
                     MSG_BUF* command_block = (MSG_BUF *) k_request_memory_block();
                     if (command_block != NULL) {
                         command_block->mtype = DEFAULT;
                         command_block->m_send_pid = PID_KCD;
-                        command_block->m_recv_pid = g_kcd_registry[g_command_buf[1]];
-                        strcpy(command_block->mtext, g_command_buf);
-                        k_send_message(g_kcd_registry[g_command_buf[1]], command_block);
+                        command_block->m_recv_pid = g_KCD_REG[g_command_buffer[1]];
+                        strcpy(command_block->mtext, g_command_buffer);
+                        k_send_message(g_KCD_REG[g_command_buffer[1]], command_block);
                     } else {
                         // Ran out of memory
                     }
@@ -127,13 +124,13 @@ void kcd_process(void) {
             }
         } else if (msg->mtype == KCD_REG) {
             if (msg->mtext[0] == '%') {
-                g_kcd_registry[msg->mtext[1]] = sender;
+                g_KCD_REG[msg->mtext[1]] = sender;
             } else {
-                // KCD reg didn't start with a %
+                // Register command didn't start with a %
             }
             k_release_memory_block(msg);
         } else {
-            // discarding message
+            // discarding this message
         }
 
         k_release_processor();
