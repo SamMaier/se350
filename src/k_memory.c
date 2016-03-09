@@ -58,9 +58,9 @@ void memory_init(void) {
         p_end += sizeof(PCB);
     }
 #ifdef DEBUG_0
-    for (i = 0; i < NUM_PROCS; i++) {
-        printf("gp_pcbs[%d] = 0x%x \n", i, gp_pcbs[i]);
-    }
+    //for (i = 0; i < NUM_PROCS; i++) {
+    //    printf("gp_pcbs[%d] = 0x%x \n", i, gp_pcbs[i]);
+    //}
 #endif
 
     /* prepare for alloc_stack() to allocate memory for stacks */

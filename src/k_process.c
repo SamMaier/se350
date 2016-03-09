@@ -519,24 +519,30 @@ void print_queue(PQ *q) {
     PCB *current;
 
     for (i = 0; i < NUM_PRIORITIES; i++) {
+        #ifdef DEBUG_0
         if (i == 0) printf("HIGH:\n");
         else if (i == 1) printf("MEDIUM:\n");
         else if (i == 2) printf("LOW:\n");
         else if (i == 3) printf("LOWEST:\n");
         else if (i == 4) printf("NULL:\n");
         else printf("INVALID PRIORITY:\n");
+        #endif
 
         current = q->front[i];
         while (current != NULL) {
+            #ifdef DEBUG_0
             printf("\t%d\n", current->m_pid);
+            #endif
             current = current->mp_next;
         }
     }
 }
 
 void print_memory_blocked_procs() {
+    #ifdef DEBUG_0
     printf("Processes blocked on memory\n");
     printf("---------------------------\n");
+    #endif
 
     print_queue(&g_blocked_pq);
 }
@@ -546,8 +552,10 @@ void print_message_blocked_procs() {
     PROC_INIT current;
     PCB* currentPCB;
 
+    #ifdef DEBUG_0
     printf("Processes blocked on receive\n");
     printf("----------------------------\n");
+    #endif
 
     for (i = 0; i < NUM_PROCS; i++) {
         current = g_proc_table[i];
@@ -556,14 +564,18 @@ void print_message_blocked_procs() {
         currentPCB = gp_pcbs[current.m_pid];
 
         if (currentPCB->m_state == STATE_BLOCKED_MSG) {
+            #ifdef DEBUG_0
             printf("\t%d\n", current.m_pid);
+            #endif
         }
     }
 }
 
 void print_ready_procs() {
+    #ifdef DEBUG_0
     printf("Processes in the Ready Queue\n");
     printf("----------------------------\n");
+    #endif
 
     print_queue(&g_ready_pq);
 }
