@@ -61,12 +61,16 @@ int send_message(int process_id, void * message_envelope);
 * **message_envelope**: a pointer to a message envelope structure
 * **returns**: `RTX_OK` if successful, otherwise `RTX_ERR`
 
+Sends a given message envelope to a specified process. This function preempts if the receiving process has a priority greater than the currently running process. Otherwise, the message is appended to the target process' message queue.
+
 ```c
 void * receive_message(int * sender_id);
 ```
 
-* **sender_id**:
-* **returns**:
+* **sender_id**: gets set to the process ID of the sender, unless set to `NULL`
+* **returns**: a pointer to the received message envelope
+
+A blocking receive message. When called, process execution halts until a message is sent to the process that invoked it.
 
 ## 2.5 Timing Services
 
@@ -78,3 +82,5 @@ int delayed_send(int process_id, void * message_envelope, int delay);
 * **message_envelope**: a pointer to a message envelope structure
 * **delay**: the message delay before sending, in milliseconds
 * **returns**: `RTX_OK` if successful, otherwise `RTX_ERR`
+
+Identical to `send_message`, except a delay parameter is used to specify a delay in milliseconds before the message is actually dispatched.
