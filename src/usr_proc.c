@@ -35,14 +35,16 @@ void set_test_procs() {
 }
 
 int ctoi(char c) {
-    return c - '0';
+    int ret = c - '0';
+    if (ret < 0 || ret > 9) return 0;
+    return ret;
 }
 
 char itoc(int i) {
     return i + '0';
 }
 
-void print_clock(int clock) {
+void wall_clock_print(int clock) {
     int hours = clock / 3600;
     int minutes = (clock % 3600) / 60;
     int seconds = clock % 60;
@@ -85,8 +87,8 @@ void wall_clock_process() {
                 running = 1;
                 version++;
                 command->mtext[0] = version;
-                send_message_delayed(PID_CLOCK, command, 30);
-                print_clock(clock);
+                delayed_send(PID_CLOCK, command, 30);
+                wall_clock_print(clock);
             } else if (command->mtext[2] == 'S'
                     && command->mtext[3] == ' '
                     && command->mtext[6] == ':'
@@ -95,12 +97,12 @@ void wall_clock_process() {
                 int minutes = ctoi(command->mtext[7]) * 10 + ctoi(command->mtext[8]);
                 int seconds = ctoi(command->mtext[10]) * 10 + ctoi(command->mtext[11]);
                 clock = 3600 * hours + 60 * minutes + seconds;
+                clock %= 24 * 60 * 60;
                 running = 1;
                 version++;
                 command->mtext[0] = version;
-                send_message_delayed(PID_CLOCK, command, 30);
-                clock %= 24 * 60 * 60;
-                print_clock(clock);
+                delayed_send(PID_CLOCK, command, 30);
+                wall_clock_print(clock);
             } else if (command->mtext[2] == 'T') {
                 running = 0;
                 release_memory_block(command);
@@ -112,8 +114,8 @@ void wall_clock_process() {
             if (command->mtext[0] == version && running) {
                 clock++;
                 clock %= 24 * 60 * 60;
-                send_message_delayed(PID_CLOCK, command, 30);
-                print_clock(clock);
+                delayed_send(PID_CLOCK, command, 30);
+                wall_clock_print(clock);
             } else {
                 release_memory_block(command);
             }
@@ -332,7 +334,7 @@ void proc2(void) {
     ptr->mtext[1] = 'u';
     ptr->mtext[2] = 's';
     // send_message(g_proc_table[6].m_pid, ptr);
-    send_message_delayed(g_proc_table[6].m_pid, ptr, 50);
+    delayed_send(g_proc_table[6].m_pid, ptr, 50);
 
     set_process_priority(g_proc_table[2].m_pid, LOWEST);
     while (1) {
@@ -471,7 +473,7 @@ void proc2(void) { while (1) { release_processor(); } }
 void proc3(void) {
     MSG_BUF* message;
     set_process_priority(3, MEDIUM);
-    
+
     message = request_memory_block();
     message->mtype = KCD_REG;
     strcpy(message->mtext, "%X");
@@ -482,10 +484,10 @@ void proc3(void) {
     send_message(PID_KCD, message);
     while (1) {
         message = receive_message(NULL);
-        send_message_delayed(1, message, 5);
-        
+        delayed_send(1, message, 5);
+
         release_processor();
-    } 
+    }
 }
 void proc4(void) { while (1) { release_processor(); } }
 void proc5(void) { while (1) { release_processor(); } }

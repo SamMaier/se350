@@ -2,6 +2,7 @@
  * @file:   k_sys_proc.c
  * @brief:  System processes: null process
  */
+#include <string.h>
 #include <LPC17xx.h>
 #include "utils.h"
 #include "uart.h"

@@ -474,7 +474,7 @@ int k_send_message_envelope(int process_id, void* message_envelope) {
     return k_send_message(process_id, message);
 }
 
-int k_send_message_delayed(int process_id, void* message_envelope, int delay) {
+int k_delayed_send(int process_id, void* message_envelope, int delay) {
     MSG_BUF* message = create_message_headers(message_envelope, process_id);
     PCB* target;
 
