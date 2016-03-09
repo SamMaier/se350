@@ -8,8 +8,8 @@
 
 //#define SIMPLE_TESTS
 //#define MEMORY_TESTS
-//#define MESSAGE_TESTS
-#define KCD_CRT_TESTS
+#define MESSAGE_TESTS
+//#define KCD_CRT_TESTS
 
 extern PROC_INIT g_proc_table[];
 
@@ -265,14 +265,18 @@ void proc6(void) {
 
 #ifdef MESSAGE_TESTS
 /**
- * @brief: A process that runs our 5 tests
+ * @brief: A process that runs our 3 tests
  */
 void proc1(void) {
+    MSG_BUF* result;
+    int sender = 123;
+    int numTests = 3;
+    int testNumber = 0;
     g_current_test = 0;
     set_process_priority(g_proc_table[1].m_pid, LOW);
 
     printf("G021_test: START\n");
-    printf("Tests will explicitly print out failure. No printout = no failure.\n");
+    printf("G021_test: total %d tests\n", numTests);
 
     set_process_priority(g_proc_table[3].m_pid, HIGH);
     set_process_priority(g_proc_table[4].m_pid, MEDIUM);
@@ -285,7 +289,32 @@ void proc1(void) {
     // Checking getting 3 from the mailbox
     set_process_priority(g_proc_table[6].m_pid, MEDIUM);
 
-    printf("Tests finished!\n");
+    for (g_current_test = 0; g_current_test < numTests; g_current_test++) {
+        sender = 123;
+        result = receive_message(&sender);
+
+        if (sender == 4) {
+            testNumber = 1;
+        } else if (sender == 5) {
+            testNumber = 2;
+        } else if (sender == 6) {
+            testNumber = 3;
+        }
+
+        if (result->mtext[0] == 'y') {
+            printf("G021_test: test %d OK\n", testNumber);
+            g_tests_passed++;
+        } else {
+            printf("G021_test: test %d FAIL\n", testNumber);
+        }
+
+        release_memory_block(result);
+    }
+
+    printf("G021_test: %d/%d tests OK\r\n", g_tests_passed, numTests);
+    printf("G021_test: %d/%d tests FAIL\r\n", (numTests - g_tests_passed), numTests);
+    printf("G021_test: END\r\n");
+
     while (1) {
         release_processor();
     }
@@ -333,9 +362,9 @@ void proc2(void) {
     ptr->mtext[0] = ' ';
     ptr->mtext[1] = 'u';
     ptr->mtext[2] = 's';
-    // send_message(g_proc_table[6].m_pid, ptr);
-    delayed_send(g_proc_table[6].m_pid, ptr, 50);
+    delayed_send(g_proc_table[6].m_pid, ptr, 30 * 3); // 3 second delay
 
+    set_process_priority(g_proc_table[1].m_pid, HIGH);
     set_process_priority(g_proc_table[2].m_pid, LOWEST);
     while (1) {
         release_processor();
@@ -350,7 +379,7 @@ void proc3(void) {
 
     release_memory_block(msg);
 
-    printf("Process 3 FAILED, did not block infinitely.\n");
+    //printf("Process 3 FAILED, did not block infinitely.\n");
 
     while (1) {
         release_processor();
@@ -364,12 +393,15 @@ void proc4(void) {
     MSG_BUF* msg = (MSG_BUF*) receive_message(NULL);
 
     if (msg->mtext[0] != 'p' || msg->mtext[1] != 'l' || msg->mtext[2] != 'e' || msg->mtype != DEFAULT) {
-        printf("Process 4 FAILED, did not recieve message with null int* argument\n");
+        msg->mtext[0] = 'n';
+        //printf("Process 4 FAILED, did not recieve message with null int* argument\n");
+    } else {
+        msg->mtext[0] = 'y';
     }
 
-    release_memory_block(msg);
+    send_message(g_proc_table[1].m_pid, msg);
 
-    printf("Process 4 finished.\n");
+    //printf("Process 4 finished.\n");
     set_process_priority(g_proc_table[4].m_pid, LOWEST);
     while (1) {
         release_processor();
@@ -381,30 +413,42 @@ void proc4(void) {
  */
 void proc5(void) {
     int sender_id = 354354;
+    int pass = 1;
     MSG_BUF* msg;
     if (g_current_test != 0) {
-        printf("Process 5 FAILED, did not start at correct time before sender.\n");
+        pass = 0;
+        //printf("Process 5 FAILED, did not start at correct time before sender.\n");
     }
     msg = (MSG_BUF*) receive_message(&sender_id);
     if (g_current_test != 1) {
-        printf("Process 5 FAILED, interrupt sender.\n");
+        pass = 0;
+        //printf("Process 5 FAILED, interrupt sender.\n");
     }
 
     if (msg->mtext[0] != 'e' || msg->mtext[1] != 's' || msg->mtext[2] != 'e' || sender_id != g_proc_table[2].m_pid) {
-        printf("Process 5 FAILED - reception of first message incorrect.\n");
+        pass = 0;
+        //printf("Process 5 FAILED - reception of first message incorrect.\n");
     }
     msg = (MSG_BUF*) receive_message(&sender_id);
     if (msg->mtext[0] != 'd' || msg->mtext[1] != 'o' || msg->mtext[2] != 'n' || sender_id != g_proc_table[2].m_pid) {
-        printf("Process 5 FAILED - reception of second message incorrect.\n");
+        pass = 0;
+        //printf("Process 5 FAILED - reception of second message incorrect.\n");
     }
-
-    release_memory_block(msg);
 
     if (g_current_test != 1) {
-        printf("Process 5 FAILED, did not finish before sender finished.\n");
+        pass = 0;
+        //printf("Process 5 FAILED, did not finish before sender finished.\n");
     }
 
-    printf("Process 5 finished.\n");
+    if (pass) {
+        msg->mtext[0] = 'y';
+    } else {
+        msg->mtext[0] = 'n';
+    }
+
+    send_message(g_proc_table[1].m_pid, msg);
+
+    //printf("Process 5 finished.\n");
     set_process_priority(g_proc_table[5].m_pid, LOWEST);
     while (1) {
         release_processor();
@@ -416,26 +460,37 @@ void proc5(void) {
  */
 void proc6(void) {
     int sender_id = 1231231231;
+    int pass = 1;
     MSG_BUF* msg;
     if (g_current_test != 2) {
-        printf("Process 6 FAILED, did not recieve messages after sending finished.\n");
+        pass = 0;
+        //printf("Process 6 FAILED, did not recieve messages after sending finished.\n");
     }
     msg = (MSG_BUF*) receive_message(&sender_id);
     if (msg->mtext[0] != 't' || msg->mtext[1] != ' ' || msg->mtext[2] != 'f' || sender_id != g_proc_table[2].m_pid) {
-        printf("Process 6 FAILED - reception of first message incorrect.\n");
+        pass = 0;
+        //printf("Process 6 FAILED - reception of first message incorrect.\n");
     }
     msg = (MSG_BUF*) receive_message(&sender_id);
     if (msg->mtext[0] != 'a' || msg->mtext[1] != 'i' || msg->mtext[2] != 'l' || sender_id != g_proc_table[2].m_pid) {
-        printf("Process 6 FAILED - reception of second message incorrect.\n");
+        pass = 0;
+        //printf("Process 6 FAILED - reception of second message incorrect.\n");
     }
     msg = (MSG_BUF*) receive_message(&sender_id);
     if (msg->mtext[0] != ' ' || msg->mtext[1] != 'u' || msg->mtext[2] != 's' || sender_id != g_proc_table[2].m_pid) {
-        printf("Process 6 FAILED - reception of third message incorrect.\n");
+        pass = 0;
+        //printf("Process 6 FAILED - reception of third message incorrect.\n");
     }
 
-    release_memory_block(msg);
+    if (pass) {
+        msg->mtext[0] = 'y';
+    } else {
+        msg->mtext[0] = 'n';
+    }
 
-    printf("Process 6 finished.\n");
+    send_message(g_proc_table[1].m_pid, msg);
+
+    //printf("Process 6 finished.\n");
     set_process_priority(g_proc_table[6].m_pid, LOWEST);
     while (1) {
         release_processor();
