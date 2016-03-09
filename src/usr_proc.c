@@ -364,7 +364,6 @@ void proc1(void) {
     message = request_memory_block();
     message->mtype = KCD_REG;
     strcpy(message->mtext, "%T");
-
     printf("Registering for command %T\n");
     send_message(PID_KCD, message);
 
@@ -379,11 +378,29 @@ void proc1(void) {
     }
 }
 
-void proc2(void) { while (1) { set_process_priority(2, MEDIUM); release_processor(); } }
-void proc3(void) { while (1) { set_process_priority(3, LOW); release_processor(); } }
-void proc4(void) { while (1) { printf("Process 4\n"); release_processor(); } }
-void proc5(void) { while (1) { printf("Process 5\n"); release_processor(); } }
-void proc6(void) { while (1) { printf("Process 6\n"); release_processor(); } }
+void proc2(void) { while (1) { release_processor(); } }
+void proc3(void) {
+    MSG_BUF* message;
+    set_process_priority(3, MEDIUM);
+    
+    message = request_memory_block();
+    message->mtype = KCD_REG;
+    strcpy(message->mtext, "%X");
+    send_message(PID_KCD, message);
+    message = request_memory_block();
+    message->mtype = KCD_REG;
+    strcpy(message->mtext, "%G");
+    send_message(PID_KCD, message);
+    while (1) {
+        message = receive_message(NULL);
+        send_message_delayed(1, message, 5);
+        
+        release_processor();
+    } 
+}
+void proc4(void) { while (1) { release_processor(); } }
+void proc5(void) { while (1) { release_processor(); } }
+void proc6(void) { while (1) { release_processor(); } }
 
 #endif
 
