@@ -35,94 +35,93 @@ void set_test_procs() {
 }
 
 int ctoi(char c) {
-	return c - '0';
+    return c - '0';
 }
 
 char itoc(int i) {
-	return i + '0';
+    return i + '0';
 }
 
 void print_clock(int clock) {
-	int hours = clock / 3600;
-	int minutes = (clock % 3600) / 60;
-	int seconds = clock % 60;
+    int hours = clock / 3600;
+    int minutes = (clock % 3600) / 60;
+    int seconds = clock % 60;
 
-	MSG_BUF* msg = (MSG_BUF*) request_memory_block();
-	msg->mtype = CRT_DISPLAY;
-	msg->mtext[0] = itoc(hours / 10);
-	msg->mtext[1] = itoc(hours % 10);
-	msg->mtext[2] = ':';
-	msg->mtext[3] = itoc(minutes / 10);
-	msg->mtext[4] = itoc(minutes % 10);
-	msg->mtext[5] = ':';
-	msg->mtext[6] = itoc(seconds / 10);
-	msg->mtext[7] = itoc(seconds % 10);
-	msg->mtext[8] = '\r';
-	msg->mtext[9] = '\n';
-	msg->mtext[10] = '\0';
+    MSG_BUF* msg = (MSG_BUF*) request_memory_block();
+    msg->mtype = CRT_DISPLAY;
+    msg->mtext[0] = itoc(hours / 10);
+    msg->mtext[1] = itoc(hours % 10);
+    msg->mtext[2] = ':';
+    msg->mtext[3] = itoc(minutes / 10);
+    msg->mtext[4] = itoc(minutes % 10);
+    msg->mtext[5] = ':';
+    msg->mtext[6] = itoc(seconds / 10);
+    msg->mtext[7] = itoc(seconds % 10);
+    msg->mtext[8] = '\r';
+    msg->mtext[9] = '\n';
+    msg->mtext[10] = '\0';
 
-	send_message(PID_CRT, msg);
+    send_message(PID_CRT, msg);
 }
 
 void wall_clock_process() {
-	int clock;
-	int running = 0;
-	char version = 0;
-	MSG_BUF* register_msg = (MSG_BUF*) request_memory_block();
+    int clock;
+    int running = 0;
+    char version = 0;
+    MSG_BUF* msg = (MSG_BUF*) request_memory_block();
 
-	register_msg->mtype = KCD_REG;
-	strcpy(register_msg->mtext, "%W");
-	send_message(PID_KCD, register_msg);
+    msg->mtype = KCD_REG;
+    strcpy(msg->mtext, "%W");
+    send_message(PID_KCD, msg);
 
-	while (1) {
-		int sender;
-		MSG_BUF* command = (MSG_BUF*) receive_message(&sender);
+    while (1) {
+        int sender;
+        MSG_BUF* command = (MSG_BUF*) receive_message(&sender);
 
-		if (sender == PID_KCD) {
-			if (command->mtext[2] == 'R') {
+        switch (sender) {
+        case PID_KCD:
+            if (command->mtext[2] == 'R') {
                 clock = 0;
                 running = 1;
-				version++;
-				command->mtext[0] = version;
-				send_message_delayed(PID_CLOCK, command, 1000);
-				print_clock(clock);
-			} else if (command->mtext[2] == 'S'
+                version++;
+                command->mtext[0] = version;
+                send_message_delayed(PID_CLOCK, command, 1000);
+                print_clock(clock);
+            } else if (command->mtext[2] == 'S'
                     && command->mtext[3] == ' '
-					&& command->mtext[6] == ':'
+                    && command->mtext[6] == ':'
                     && command->mtext[9] == ':') {
-				int hours = ctoi(command->mtext[4]) * 10 + ctoi(command->mtext[5]);
-				int minutes = ctoi(command->mtext[7]) * 10 + ctoi(command->mtext[8]);
-				int seconds = ctoi(command->mtext[10]) * 10 + ctoi(command->mtext[11]);
+                int hours = ctoi(command->mtext[4]) * 10 + ctoi(command->mtext[5]);
+                int minutes = ctoi(command->mtext[7]) * 10 + ctoi(command->mtext[8]);
+                int seconds = ctoi(command->mtext[10]) * 10 + ctoi(command->mtext[11]);
                 clock = 3600 * hours + 60 * minutes + seconds;
                 running = 1;
-				version++;
-				command->mtext[0] = version;
-				send_message_delayed(PID_CLOCK, command, 1000);
-				clock %= 24 * 60 * 60;
-				print_clock(clock);
-			} else if (command->mtext[2] == 'T') {
-				running = 0;
-				release_memory_block(command);
-			} else {
-                // command invalid
-				release_memory_block(command);
-			}
-		} else if (sender == PID_CLOCK) {
-			if (command->mtext[0] == version && running) {
-				clock++;
-				clock %= 24 * 60 * 60;
-				send_message_delayed(PID_CLOCK, command, 1000);
-				print_clock(clock);
-			} else {
-				release_memory_block(command);
-			}
-		} else {
-            // invalid sender
-			release_memory_block(command);
-		}
+                version++;
+                command->mtext[0] = version;
+                send_message_delayed(PID_CLOCK, command, 1000);
+                clock %= 24 * 60 * 60;
+                print_clock(clock);
+            } else if (command->mtext[2] == 'T') {
+                running = 0;
+                release_memory_block(command);
+            } else {
+                release_memory_block(command);
+            }
+            break;
+        case PID_CLOCK:
+            if (command->mtext[0] == version && running) {
+                clock++;
+                clock %= 24 * 60 * 60;
+                send_message_delayed(PID_CLOCK, command, 1000);
+                print_clock(clock);
+            } else {
+                release_memory_block(command);
+            }
+            break;
+        }
 
-		release_processor();
-	}
+        release_processor();
+    }
 }
 
 #ifdef MEMORY_TESTS
