@@ -281,7 +281,7 @@ int process_switch(PCB *p_pcb_old) {
         gp_current_process->m_state = STATE_RUN;
         __set_MSP((U32) gp_current_process->mp_sp);
 
-        if (gp_current_process->m_pid == 0 || gp_current_process->m_pid > 6) {
+        if (gp_current_process->m_pid == 0 || (gp_current_process->m_pid > 6 && gp_current_process->m_pid != PID_CLOCK)) {
             __new_i_proc_rte();
         } else {
             __rte();  // pop exception stack frame from the stack for a new processes
