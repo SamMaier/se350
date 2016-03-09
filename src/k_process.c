@@ -204,7 +204,7 @@ void process_init() {
  */
 PCB *scheduler(void) {
     PCB *old_proc = gp_current_process;
-    if (old_proc != NULL && old_proc->m_pid >= 1 && old_proc->m_pid <= 6) {
+    if (old_proc != NULL && old_proc->m_priority != INTERRUPT) {
         switch(old_proc->m_state) {
             case STATE_BLOCKED_MEMORY:
             case STATE_BLOCKED_MSG:
@@ -456,7 +456,7 @@ int k_send_message(int process_id, MSG_BUF *message) {
         pq_push_ready(target);
         // DO WE CALL RELEASE HERE??? WHAT IF CURR PROC HAS HIGHEST PRIORITY
         // slides don't have this call
-        if (target->m_priority < gp_current_process->m_priority) {
+        if (target->m_priority < gp_current_process->m_priority && gp_current_process->m_priority != INTERRUPT) {
             return k_release_processor();
         }
     }
