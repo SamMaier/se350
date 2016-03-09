@@ -138,10 +138,11 @@ void kcd_process(void) {
 
 void crt_process() {
     while (1) {
+        LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef*) LPC_UART0;
         MSG_BUF *msg = (MSG_BUF *) k_receive_message(NULL);
 
         if (msg->mtype == CRT_DISPLAY) {
-            k_uart_interrupt();
+            pUart->IER = IER_THRE | IER_RLS | IER_RBR;
             k_send_message(PID_UART_IPROC, msg);
         } else {
             // Doesn't make sense to get here - it should only get CRT_DISPLAY calls
@@ -196,6 +197,16 @@ void remove_message_delayed(MSG_BUF *message) {
     }
 }
 
+__asm push_registers() {
+    PUSH{r4-r11}
+    BX LR
+}
+
+__asm pop_registers() {
+    POP{r4-r11}
+    BX LR
+}
+
 /**
  * gets called once every millisecond
  */
@@ -219,18 +230,10 @@ void timer_i_process() {
             }
         }
 
+        push_registers();
         k_release_processor();
+        pop_registers();
     }
-}
-
-__asm push_registers() {
-    PUSH{r4-r11}
-    BX LR
-}
-
-__asm pop_registers() {
-    POP{r4-r11}
-    BX LR
 }
 
 void uart_i_process() {
@@ -248,6 +251,7 @@ void uart_i_process() {
             MSG_BUF* msg = dequeue_message(uart_pcb);
             strcpy(buffer, msg->mtext);
             isBufferFull = 1;
+            i = 0;
             k_release_memory_block(msg);
             pUart->IER |= IER_THRE; // enable whatever THRE is
         }
@@ -284,9 +288,18 @@ void uart_i_process() {
         /* THRE Interrupt, transmit holding register becomes empty */
             if (isBufferFull) {
                 if (buffer[i] == '\0' ) {
-                    isBufferFull = 0;
+                    if (uart_pcb->mp_msg_queue_front != NULL) {
+                        // Can get new message
+                        MSG_BUF* msg = dequeue_message(uart_pcb);
+                        strcpy(buffer, msg->mtext);
+                        isBufferFull = 1;
+                        k_release_memory_block(msg);
+                    } else {
+                        isBufferFull = 0;
+                        pUart->IER &= ~IER_THRE; // toggle the IER_THRE bit
+                    }
+
                     i = 0;
-                    pUart->IER ^= IER_THRE; // toggle the IER_THRE bit
                     pUart->THR = '\0';
                 } else {
                     pUart->THR = buffer[i];
