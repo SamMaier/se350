@@ -121,7 +121,7 @@ void *k_request_memory_block(void) {
     returnVal = (void *)gp_heap_head;
 
 #ifdef DEBUG_0
-    printf("k_request_memory_block #%d: entering...\n", count);
+    //printf("k_request_memory_block #%d: entering...\n", count);
 #endif /* ! DEBUG_0 */
 
     if (gp_heap_head != NULL) {
@@ -154,7 +154,7 @@ int k_release_memory_block(void *p_mem_blk) {
     PCB* blocked_proc = pq_pop_blocked();
     U32* head_value = gp_heap_head;
 #ifdef DEBUG_0
-    printf("k_release_memory_block: releasing block @ 0x%x\n", p_mem_blk);
+    //printf("k_release_memory_block: releasing block @ 0x%x\n", p_mem_blk);
 #endif
     gp_heap_head = (U32*)p_mem_blk;
     *gp_heap_head = (U32)head_value;

@@ -2,8 +2,8 @@
  * @file:   k_sys_proc.c
  * @brief:  System processes: null process
  */
-
 #include <LPC17xx.h>
+#include "utils.h"
 #include "uart.h"
 #include "uart_polling.h"
 #include "k_rtx.h"
@@ -30,7 +30,6 @@ extern void print_ready_procs(void);
 extern U32 g_timer;
 
 /* UART interrupt globals */
-uint8_t g_send_char = 0;
 uint8_t g_char_in;
 
 MSG_BUF* timeout_queue_front = NULL;
@@ -78,6 +77,10 @@ void null_process() {
 
 void kcd_process(void) {
     int buf_length = 0;
+    int i;
+    for (i = 0; i < 256; i++) {
+        g_kcd_registry[i] = -1;
+    }
     while (1) {
         // We send the block received from UART to CRT for output
         // Alocate a new block to replenish UART
@@ -85,11 +88,7 @@ void kcd_process(void) {
         int sender;
         MSG_BUF *msg = (MSG_BUF *) k_receive_message(&sender);
         if (msg->mtype == DEFAULT) {
-            void* block_for_uart;
             char char_in;
-
-            block_for_uart = k_request_memory_block();
-            k_send_message(PID_NULL, block_for_uart); // savage
             char_in = msg->mtext[0];
 
             if (buf_length >= (0x100 - sizeof(int) - 2)) {
@@ -103,13 +102,19 @@ void kcd_process(void) {
                 buf_length++;
                 g_command_buf[buf_length] = '\0';
                 buf_length = 0;
+                // Echoing back to the display
                 strcpy(msg->mtext, "\r\n");
                 msg->mtype = CRT_DISPLAY;
                 k_send_message(PID_CRT, msg);
                 if (g_command_buf[0] == '%' && g_kcd_registry[g_command_buf[1]] > -1) {
                     MSG_BUF* command_block = (MSG_BUF *) k_request_memory_block();
-                    strcpy(command_block->mtext, g_command_buf);
-                    k_send_message(g_kcd_registry[g_command_buf[1]], command_block);
+                    if (command_block != NULL) {
+                        command_block->mtype = DEFAULT;
+                        strcpy(command_block->mtext, g_command_buf);
+                        k_send_message(g_kcd_registry[g_command_buf[1]], command_block);
+                    } else {
+                        // Ran out of memory
+                    }
                 }
             } else {
                 msg->mtext[1] = '\0';
@@ -123,7 +128,7 @@ void kcd_process(void) {
                 // KCD reg didn't start with a %
             }
             k_release_memory_block(msg);
-        }	else {
+        } else {
             // discarding message
         }
 
@@ -139,6 +144,7 @@ void crt_process() {
             k_uart_interrupt();
             k_send_message(PID_UART_IPROC, msg);
         } else {
+            // Doesn't make sense to get here - it should only get CRT_DISPLAY calls
             k_release_memory_block(msg);
         }
 
@@ -228,7 +234,8 @@ void uart_i_process() {
         if (buffer == NULL && uart_pcb->mp_msg_queue_front != NULL){
             // Can get new message
             MSG_BUF* msg = dequeue_message(uart_pcb);
-            buffer = msg->mtext;
+            strcpy(buffer, msg->mtext);
+            k_release_memory_block(msg);
             pUart->IER |= IER_THRE; // enable whatever THRE is
         }
 
@@ -267,7 +274,6 @@ void uart_i_process() {
                     buffer = NULL;
                     pUart->IER ^= IER_THRE; // toggle the IER_THRE bit
                     pUart->THR = '\0';
-                    g_send_char = 0;
                 } else {
                     pUart->THR = *buffer;
                     buffer++;

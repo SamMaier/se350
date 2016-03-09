@@ -1,4 +1,5 @@
 #include <LPC17xx.H>
+#include "utils.h"
 #include "rtx.h"
 #include "uart_polling.h"
 #include "usr_proc.h"
@@ -6,7 +7,8 @@
 
 //#define SIMPLE_TESTS
 //#define MEMORY_TESTS
-#define MESSAGE_TESTS
+//#define MESSAGE_TESTS
+#define KCD_CRT_TESTS
 
 extern PROC_INIT g_proc_table[];
 
@@ -348,6 +350,40 @@ void proc6(void) {
         release_processor();
     }
 }
+
+#endif
+
+#ifdef KCD_CRT_TESTS
+
+void proc1(void) {
+    MSG_BUF *message;
+
+    set_process_priority(1, HIGH);
+    printf("Starting process 1\n");
+
+    message = request_memory_block();
+    message->mtype = KCD_REG;
+    strcpy(message->mtext, "%T");
+
+    printf("Registering for command %T\n");
+    send_message(PID_KCD, message);
+
+    while (1) {
+        printf("Process 1 waiting for command...\n");
+        message = receive_message(NULL);
+        printf("Process 1 received command!\n");
+
+        message->mtype = CRT_DISPLAY;
+        send_message(PID_CRT, message);
+        release_processor();
+    }
+}
+
+void proc2(void) { while (1) { set_process_priority(2, MEDIUM); release_processor(); } }
+void proc3(void) { while (1) { set_process_priority(3, LOW); release_processor(); } }
+void proc4(void) { while (1) { printf("Process 4\n"); release_processor(); } }
+void proc5(void) { while (1) { printf("Process 5\n"); release_processor(); } }
+void proc6(void) { while (1) { printf("Process 6\n"); release_processor(); } }
 
 #endif
 
