@@ -110,6 +110,8 @@ void kcd_process(void) {
                     MSG_BUF* command_block = (MSG_BUF *) k_request_memory_block();
                     if (command_block != NULL) {
                         command_block->mtype = DEFAULT;
+                        command_block->m_send_pid = PID_KCD;
+                        command_block->m_recv_pid = g_kcd_registry[g_command_buf[1]];
                         strcpy(command_block->mtext, g_command_buf);
                         k_send_message(g_kcd_registry[g_command_buf[1]], command_block);
                     } else {

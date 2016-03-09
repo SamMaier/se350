@@ -68,15 +68,15 @@ void wall_clock_process() {
     int clock;
     int running = 0;
     char version = 0;
-    MSG_BUF* msg = (MSG_BUF*) request_memory_block();
+    MSG_BUF* command = request_memory_block();
 
-    msg->mtype = KCD_REG;
-    strcpy(msg->mtext, "%W");
-    send_message(PID_KCD, msg);
+    command->mtype = KCD_REG;
+    strcpy(command->mtext, "%W");
+    send_message(PID_KCD, command);
 
     while (1) {
-        int sender;
-        MSG_BUF* command = (MSG_BUF*) receive_message(&sender);
+        int sender = 123;
+        command = receive_message(&sender);
 
         switch (sender) {
         case PID_KCD:
@@ -85,7 +85,7 @@ void wall_clock_process() {
                 running = 1;
                 version++;
                 command->mtext[0] = version;
-                send_message_delayed(PID_CLOCK, command, 1000);
+                send_message_delayed(PID_CLOCK, command, 30);
                 print_clock(clock);
             } else if (command->mtext[2] == 'S'
                     && command->mtext[3] == ' '
@@ -98,7 +98,7 @@ void wall_clock_process() {
                 running = 1;
                 version++;
                 command->mtext[0] = version;
-                send_message_delayed(PID_CLOCK, command, 1000);
+                send_message_delayed(PID_CLOCK, command, 30);
                 clock %= 24 * 60 * 60;
                 print_clock(clock);
             } else if (command->mtext[2] == 'T') {
@@ -112,7 +112,7 @@ void wall_clock_process() {
             if (command->mtext[0] == version && running) {
                 clock++;
                 clock %= 24 * 60 * 60;
-                send_message_delayed(PID_CLOCK, command, 1000);
+                send_message_delayed(PID_CLOCK, command, 30);
                 print_clock(clock);
             } else {
                 release_memory_block(command);
