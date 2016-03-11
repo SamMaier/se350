@@ -54,6 +54,9 @@
 typedef unsigned char U8;
 typedef unsigned int U32;
 
+/* Priority Name Array */
+const char* PRIORITY_NAME[] = { "HIGH", "MEDIUM", "LOW", "LOWEST", "NULL" };
+
 /* initialization table item, exposed to user space */
 typedef struct proc_init {
     int m_pid;               // process id
