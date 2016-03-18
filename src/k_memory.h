@@ -1,12 +1,5 @@
-/**
- * @file:   k_memory.h
- * @brief:  kernel memory managment header file
- * @author: Yiqing Huang
- * @date:   2014/01/17
- */
-
-#ifndef K_MEM_H_
-#define K_MEM_H_
+#ifndef K_MEM_H
+#define K_MEM_H
 
 #include "k_rtx.h"
 
@@ -18,13 +11,13 @@
 /* ----- Variables ----- */
 /* This symbol is defined in the scatter file (see RVCT Linker User Guide) */
 extern unsigned int Image$$RW_IRAM1$$ZI$$Limit;
-extern PCB **gp_pcbs;
+extern PCB** gp_pcbs;
 extern PROC_INIT g_proc_table[NUM_PROCS];
 
 /* ----- Functions ------ */
 void memory_init(void);
-U32 *alloc_stack(U32 size_b);
-void *k_request_memory_block(void);
-int k_release_memory_block(void *);
+U32* alloc_stack(U32 size_b);
+void* k_request_memory_block(void);
+int k_release_memory_block(void* p_mem_blk);
 
-#endif /* ! K_MEM_H_ */
+#endif // K_MEM_H
