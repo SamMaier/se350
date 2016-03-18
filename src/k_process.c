@@ -25,7 +25,6 @@ U32 g_switch_flag = 0;
 PROC_INIT g_proc_table[NUM_PROCS];
 
 extern void insert_message_delayed(PCB*, MSG_BUF*, int);
-extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
 /* process priority queues */
 PQ g_blocked_pq;
@@ -161,13 +160,8 @@ void process_init() {
     for (i = 0; i < NUM_PROCS; i++) {
         g_proc_table[i].m_pid = -1; // uninitialized;
     }
-
     set_test_procs();
     set_sys_procs();
-
-    for (i = 0; i < NUM_TEST_PROCS; i++) {
-        g_proc_table[i+1] = g_test_procs[i];
-    }
 
     /* initialize priority queues */
     for (i = 0; i < NUM_PRIORITIES; i++) {
@@ -182,10 +176,10 @@ void process_init() {
         int j;
         if (g_proc_table[i].m_pid == -1) continue;
 
-        (gp_pcbs[i])->mp_next            = NULL;
-        (gp_pcbs[i])->m_pid              = g_proc_table[i].m_pid;
-        (gp_pcbs[i])->m_priority         = g_proc_table[i].m_priority;
-        (gp_pcbs[i])->m_state            = STATE_NEW;
+        (gp_pcbs[i])->mp_next               = NULL;
+        (gp_pcbs[i])->m_pid                 = g_proc_table[i].m_pid;
+        (gp_pcbs[i])->m_priority            = g_proc_table[i].m_priority;
+        (gp_pcbs[i])->m_state               = STATE_NEW;
         (gp_pcbs[i])->mp_msg_queue_front = NULL;
         (gp_pcbs[i])->mp_msg_queue_back  = NULL;
 
@@ -526,7 +520,12 @@ void print_queue(PQ *q) {
 
     for (i = 0; i < NUM_PRIORITIES; i++) {
         #ifdef DEBUG_0
-        printf(PRIORITY_NAME[i]);
+        if (i == 0) printf("HIGH:\n");
+        else if (i == 1) printf("MEDIUM:\n");
+        else if (i == 2) printf("LOW:\n");
+        else if (i == 3) printf("LOWEST:\n");
+        else if (i == 4) printf("NULL:\n");
+        else printf("INVALID PRIORITY:\n");
         #endif
 
         current = q->front[i];
@@ -566,7 +565,7 @@ void print_message_blocked_procs() {
 
         if (currentPCB->m_state == STATE_BLOCKED_MSG) {
             #ifdef DEBUG_0
-            printf("\tPID: %d, PRIORITY: %d\n", current.m_pid, current.m_priority);
+            printf("\t%d\n", current.m_pid);
             #endif
         }
     }
