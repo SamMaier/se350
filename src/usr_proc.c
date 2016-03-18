@@ -1,6 +1,5 @@
 #include <string.h>
 #include <LPC17xx.H>
-#include "utils.h"
 #include "rtx.h"
 #include "uart_polling.h"
 #include "usr_proc.h"

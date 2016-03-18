@@ -4,7 +4,6 @@
  */
 #include <string.h>
 #include <LPC17xx.h>
-#include "utils.h"
 #include "uart.h"
 #include "uart_polling.h"
 #include "k_rtx.h"
