@@ -1,5 +1,5 @@
-#ifndef K_PROCESS_H_
-#define K_PROCESS_H_
+#ifndef K_PROCESS_H
+#define K_PROCESS_H
 
 #include "k_rtx.h"
 
@@ -8,17 +8,17 @@
 
 /* Functions */
 void process_init(void);                          // initialize all procs in the system
-PCB *scheduler(void);                             // pick the pid of the next to run process
+PCB* scheduler(void);                             // pick the pid of the next to run process
 int k_release_process(void);                      // kernel release_process function
 int k_set_process_priority(const int, const int); // set process priority
 int k_get_process_priority(const int);            // get process priority
 int k_send_message_envelope(int process_id, void* message_envelope);
+void* k_receive_message(int* sender_id);
 int k_delayed_send(int process_id, void* message_envelope, int delay);
-void *k_receive_message(int *sender_id);
 
-extern U32 *alloc_stack(U32 size_b); // allocate stack for a process
+extern U32* alloc_stack(U32 size_b); // allocate stack for a process
 extern void __rte(void);             // pop exception stack frame
 extern void set_test_procs(void);    // test process initial set up
 extern void set_sys_procs(void);     // system process initial set up
 
-#endif
+#endif // K_PROCESS_H
