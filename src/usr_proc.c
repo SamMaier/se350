@@ -12,6 +12,7 @@
 //#define KCD_CRT_TESTS
 
 extern PROC_INIT g_proc_table[];
+PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
 void (*g_test_proc_funcs[]) (void) = { &proc1, &proc2, &proc3, &proc4, &proc5, &proc6 };
 
@@ -21,10 +22,10 @@ int g_tests_passed;
 void set_test_procs() {
     int i;
     for (i = 0; i < NUM_TEST_PROCS; i++) {
-        g_proc_table[i+1].m_pid        = (U32) (i+1);
-        g_proc_table[i+1].m_priority   = LOWEST;
-        g_proc_table[i+1].m_stack_size = 0x100;
-        g_proc_table[i+1].mpf_start_pc = g_test_proc_funcs[i];
+        g_test_procs[i].m_pid        = (U32) (i+1);
+        g_test_procs[i].m_priority   = LOWEST;
+        g_test_procs[i].m_stack_size = 0x100;
+        g_test_procs[i].mpf_start_pc = g_test_proc_funcs[i];
     }
 
     /* wall clock process */
@@ -111,7 +112,7 @@ void wall_clock_process() {
             }
             break;
         case PID_CLOCK:
-            if (command->mtext[0] == version && running) {
+            if (running) {
                 clock++;
                 clock %= 24 * 60 * 60;
                 delayed_send(PID_CLOCK, command, 1000);
