@@ -431,6 +431,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\pq.c</FilePath>
             </File>
+            <File>
+              <FileName>debug_printer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\debug_printer.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -914,6 +919,11 @@
               <FileName>pq.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\pq.c</FilePath>
+            </File>
+            <File>
+              <FileName>debug_printer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\debug_printer.c</FilePath>
             </File>
           </Files>
         </Group>

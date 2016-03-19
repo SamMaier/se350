@@ -1,8 +1,9 @@
 #include <LPC17xx.h>
 #include <system_LPC17xx.h>
-#include "uart_polling.h"
 #include "k_process.h"
+#include "uart_polling.h"
 #include "pq.h"
+#include "utils.h"
 
 #ifdef DEBUG_0
     #include "printf.h"
@@ -118,16 +119,17 @@ PCB* scheduler(void) {
         case STATE_NEW:
         case STATE_READY:
         case STATE_RUN:
+            // if this process got interrupted, we will resume it after the interrupt
+            // handler has run
             if (timer_i_proc_pending || uart_i_proc_pending) {
                 pq_push_ready_front(old_proc);
             } else {
                 pq_push_ready(old_proc);
             }
+
             break;
         default:
-#ifdef DEBUG_0
-            printf("scheduler: unknown state\n");
-#endif
+            logln("scheduler: unknown state");
             break;
         }
     }
@@ -138,12 +140,12 @@ PCB* scheduler(void) {
     } else if (uart_i_proc_pending) {
         uart_i_proc_pending = 0;
         return gp_pcbs[PID_UART_IPROC];
+    } else {
+        return pq_pop_ready();
     }
-
-    return pq_pop_ready();
 }
 
-__asm __new_i_proc_rte() {
+__asm __new_special_proc_rte() {
     POP {r0 - r4, r12, pc}
 }
 
@@ -170,14 +172,10 @@ int process_switch(PCB* p_pcb_old) {
                 // Don't set state to STATE_READY
                 break;
             case STATE_NEW:
-#ifdef DEBUG_0
-                printf("process_switch: process has state STATE_NEW but shouldn't\n");
-#endif
+                logln("process_switch: process has state STATE_NEW but shouldn't");
                 break;
             default:
-#ifdef DEBUG_0
-                printf("process_switch: unknown state\n");
-#endif
+                logln("process_switch: unknown state");
                 break;
             };
 
@@ -187,8 +185,9 @@ int process_switch(PCB* p_pcb_old) {
         gp_current_process->m_state = STATE_RUN;
         __set_MSP((U32) gp_current_process->mp_sp);
 
+        // for some reason, we must call __new_special_proc_rte for the KCD and CRT procs too
         if (gp_current_process->m_pid == 0 || (gp_current_process->m_pid > 6 && gp_current_process->m_pid != PID_CLOCK)) {
-            __new_i_proc_rte();
+            __new_special_proc_rte();
         } else {
             __rte();  // pop exception stack frame from the stack for a new processes
         }
@@ -207,14 +206,10 @@ int process_switch(PCB* p_pcb_old) {
                 // Don't set state to STATE_READY
                 break;
             case STATE_NEW:
-#ifdef DEBUG_0
-                printf("process_switch: process has state STATE_NEW but shouldn't\n");
-#endif
+                logln("process_switch: process has state STATE_NEW but shouldn't");
                 break;
             default:
-#ifdef DEBUG_0
-                printf("process_switch: unknown state\n");
-#endif
+                logln("process_switch: unknown state");
                 break;
             };
 
@@ -226,6 +221,7 @@ int process_switch(PCB* p_pcb_old) {
             return RTX_ERR;
         }
     }
+
     return RTX_OK;
 }
 
@@ -250,6 +246,7 @@ int k_release_processor(void) {
     }
 
     process_switch(p_pcb_old);
+
     return RTX_OK;
 }
 /**
@@ -273,7 +270,6 @@ int k_set_process_priority(const int process_id, const int priority) {
         return k_release_processor();
     }
 
-    // TODO: make this generic?
     process = pq_pop_PCB_ready(gp_pcbs[process_id]);
     if (process == NULL) process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
 
@@ -289,14 +285,10 @@ int k_set_process_priority(const int process_id, const int priority) {
         pq_push_blocked(process);
         break;
     case STATE_RUN:
-#ifdef DEBUG_0
-        printf("k_set_process_priority: process has state STATE_RUN but is not current running process\n");
-#endif
+        logln("k_set_process_priority: process has state STATE_RUN but is not current running process");
         break;
     default:
-#ifdef DEBUG_0
-        printf("k_set_process_priority: unknown state\n");
-#endif
+        logln("k_set_process_priority: unknown state");
         break;
     };
 
@@ -319,11 +311,13 @@ int k_get_process_priority(const int process_id) {
 /* Adds a given message to the target's message queue*/
 void enqueue_message(PCB* target, MSG_BUF* message) {
     message->mp_next = NULL;
+
     if (target->mp_msg_queue_back == NULL) {
         target->mp_msg_queue_front = message;
     } else {
         target->mp_msg_queue_back->mp_next = message;
     }
+
     target->mp_msg_queue_back = message;
 }
 
@@ -418,69 +412,4 @@ void k_set_timer_interrupt_pending() {
 
 void k_set_uart_interrupt_pending() {
     uart_i_proc_pending = 1;
-}
-void print_queue(PQ* q) {
-    int i;
-    PCB* current;
-
-    for (i = 0; i < NUM_PRIORITIES; i++) {
-#ifdef DEBUG_0
-        if (i == 0) printf("HIGH:\n");
-        else if (i == 1) printf("MEDIUM:\n");
-        else if (i == 2) printf("LOW:\n");
-        else if (i == 3) printf("LOWEST:\n");
-        else if (i == 4) printf("NULL:\n");
-        else printf("INVALID PRIORITY:\n");
-#endif
-
-        current = q->front[i];
-        while (current != NULL) {
-#ifdef DEBUG_0
-            printf("\t%d\n", current->m_pid);
-#endif
-            current = current->mp_next;
-        }
-    }
-}
-
-void print_memory_blocked_procs() {
-#ifdef DEBUG_0
-    printf("Processes blocked on memory\n");
-    printf("---------------------------\n");
-#endif
-
-    print_queue(&g_blocked_pq);
-}
-
-void print_message_blocked_procs() {
-    int i;
-    PROC_INIT current;
-    PCB* currentPCB;
-
-#ifdef DEBUG_0
-    printf("Processes blocked on receive\n");
-    printf("----------------------------\n");
-#endif
-
-    for (i = 0; i < NUM_PROCS; i++) {
-        current = g_proc_table[i];
-        if (current.m_pid == -1) continue;
-
-        currentPCB = gp_pcbs[current.m_pid];
-
-        if (currentPCB->m_state == STATE_BLOCKED_MSG) {
-#ifdef DEBUG_0
-            printf("\t%d\n", current.m_pid);
-#endif
-        }
-    }
-}
-
-void print_ready_procs() {
-#ifdef DEBUG_0
-    printf("Processes in the Ready Queue\n");
-    printf("----------------------------\n");
-#endif
-
-    print_queue(&g_ready_pq);
 }
