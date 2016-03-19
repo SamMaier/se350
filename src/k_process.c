@@ -16,11 +16,6 @@ typedef struct {
 PCB **gp_pcbs; // array of pcbs
 PCB *gp_current_process = NULL; // always point to the current STATE_RUN process
 
-/* whether to continue to run the process before the UART receive interrupt
-1 means to switch to another process, 0 means to continue the current process
-this value will be set by UART handler */
-U32 g_switch_flag = 0;
-
 /* process initialization table */
 PROC_INIT g_proc_table[NUM_PROCS];
 
@@ -508,7 +503,6 @@ void *k_receive_message(int *sender_id) {
 
 void k_timer_interrupt() {
     timer_i_proc_pending = 1;
-    k_release_processor(); // TODO: maybe get rid of this call to make this consistent with k_uart_interrupt
 }
 
 void k_uart_interrupt() {
