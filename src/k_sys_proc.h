@@ -7,6 +7,7 @@
 #define SYS_PROC_H_
 
 void set_sys_procs(void);
+void set_priority_process(void);
 void null_process(void);
 void timer_i_process(void);
 void kcd_process(void);

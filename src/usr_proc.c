@@ -6,9 +6,10 @@
 #include "usr_proc.h"
 #include "printf.h"
 
+#define SET_PROC_PRIORITY_TESTS
 //#define SIMPLE_TESTS
 //#define MEMORY_TESTS
-#define MESSAGE_TESTS
+//#define MESSAGE_TESTS
 //#define KCD_CRT_TESTS
 
 extern PROC_INIT g_proc_table[];
@@ -125,6 +126,80 @@ void wall_clock_process() {
         release_processor();
     }
 }
+
+#ifdef SET_PROC_PRIORITY_TESTS
+/**
+ * @brief: A process that runs our 5 tests
+ */
+void proc1(void) {
+    int i;
+    set_process_priority(g_proc_table[1].m_pid, MEDIUM);
+
+    for (i = 2; i <= NUM_TEST_PROCS; i++) {
+        set_process_priority(g_proc_table[i].m_pid, LOW);
+    }
+
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc1\r\n");
+    }
+}
+
+/**
+ * @brief: empty function that prints occasionally
+ */
+void proc2(void) {
+    int i;
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc2\r\n");
+    }
+}
+
+/**
+ * @brief: empty function that prints occasionally
+ */
+void proc3(void) {
+    int i;
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc3\r\n");
+    }
+}
+
+/**
+ * @brief: empty function that prints occasionally
+ */
+void proc4(void) {
+    int i;
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc4\r\n");
+    }
+}
+
+/**
+ * @brief: empty function that prints occasionally
+ */
+void proc5(void) {
+    int i;
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc5\r\n");
+    }
+}
+
+/**
+ * @brief: empty function that prints occasionally
+ */
+void proc6(void) {
+    int i;
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc6\r\n");
+    }
+}
+#endif
 
 #ifdef MEMORY_TESTS
 /**
