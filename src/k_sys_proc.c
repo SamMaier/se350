@@ -102,7 +102,7 @@ void set_priority_process(void) {
         priority = command->mtext[5] - '0';
         
         // Only allowing setting of usr procs and stress test procs
-        if (command->mtext[4] == ' ' && proc_id <= 9 && proc_id >= 1 && priority >= HIGH && priority <= HIDDEN) {
+        if (command->mtext[4] == ' ' && proc_id <= 9 && proc_id >= 1 && priority >= HIGH && priority <= LOWEST) {
             k_set_process_priority(proc_id, priority);
         } else {
             printf("Error: invalid priority process arguments\r\n");
