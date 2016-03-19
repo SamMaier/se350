@@ -10,6 +10,8 @@
 #define MESSAGE_TESTS
 //#define KCD_CRT_TESTS
 
+#define ONE_SECOND 30
+
 extern PROC_INIT g_proc_table[];
 
 void (*g_test_proc_funcs[])(void) = { &proc1, &proc2, &proc3, &proc4, &proc5, &proc6 };
@@ -86,7 +88,7 @@ void wall_clock_process() {
                 running = 1;
                 version++;
                 command->mtext[0] = version;
-                delayed_send(PID_CLOCK, command, 1000);
+                delayed_send(PID_CLOCK, command, ONE_SECOND);
                 wall_clock_print(clock);
             } else if (command->mtext[2] == 'S'
                        && command->mtext[3] == ' '
@@ -100,7 +102,7 @@ void wall_clock_process() {
                 running = 1;
                 version++;
                 command->mtext[0] = version;
-                delayed_send(PID_CLOCK, command, 1000);
+                delayed_send(PID_CLOCK, command, ONE_SECOND);
                 wall_clock_print(clock);
             } else if (command->mtext[2] == 'T') {
                 running = 0;
@@ -113,7 +115,7 @@ void wall_clock_process() {
             if (command->mtext[0] == version && running) {
                 clock++;
                 clock %= 24 * 60 * 60;
-                delayed_send(PID_CLOCK, command, 1000);
+                delayed_send(PID_CLOCK, command, ONE_SECOND);
                 wall_clock_print(clock);
             } else {
                 release_memory_block(command);
@@ -361,7 +363,7 @@ void proc2(void) {
     ptr->mtext[0] = ' ';
     ptr->mtext[1] = 'u';
     ptr->mtext[2] = 's';
-    delayed_send(g_proc_table[6].m_pid, ptr, 1000 * 3); // 3 second delay
+    delayed_send(g_proc_table[6].m_pid, ptr, ONE_SECOND * 3); // 3 second delay
 
     set_process_priority(g_proc_table[1].m_pid, HIGH);
     set_process_priority(g_proc_table[2].m_pid, LOWEST);
@@ -378,7 +380,7 @@ void proc3(void) {
 
     release_memory_block(msg);
 
-    //logln("Process 3 FAILED, did not block infinitely.");
+    logln("Process 3 FAILED, did not block infinitely.");
 
     while (1) {
         release_processor();
@@ -393,14 +395,14 @@ void proc4(void) {
 
     if (msg->mtext[0] != 'p' || msg->mtext[1] != 'l' || msg->mtext[2] != 'e' || msg->mtype != DEFAULT) {
         msg->mtext[0] = 'n';
-        //logln("Process 4 FAILED, did not recieve message with null int* argument");
+        logln("Process 4 FAILED, did not recieve message with null int* argument");
     } else {
         msg->mtext[0] = 'y';
     }
 
     send_message(g_proc_table[1].m_pid, msg);
 
-    //logln("Process 4 finished.");
+    logln("Process 4 finished.");
     set_process_priority(g_proc_table[4].m_pid, LOWEST);
     while (1) {
         release_processor();
@@ -416,27 +418,27 @@ void proc5(void) {
     MSG_BUF* msg;
     if (g_current_test != 0) {
         pass = 0;
-        //logln("Process 5 FAILED, did not start at correct time before sender.");
+        logln("Process 5 FAILED, did not start at correct time before sender.");
     }
     msg = (MSG_BUF*) receive_message(&sender_id);
     if (g_current_test != 1) {
         pass = 0;
-        //logln("Process 5 FAILED, interrupt sender.");
+        logln("Process 5 FAILED, interrupt sender.");
     }
 
     if (msg->mtext[0] != 'e' || msg->mtext[1] != 's' || msg->mtext[2] != 'e' || sender_id != g_proc_table[2].m_pid) {
         pass = 0;
-        //logln("Process 5 FAILED - reception of first message incorrect.");
+        logln("Process 5 FAILED - reception of first message incorrect.");
     }
     msg = (MSG_BUF*) receive_message(&sender_id);
     if (msg->mtext[0] != 'd' || msg->mtext[1] != 'o' || msg->mtext[2] != 'n' || sender_id != g_proc_table[2].m_pid) {
         pass = 0;
-        //logln("Process 5 FAILED - reception of second message incorrect.");
+        logln("Process 5 FAILED - reception of second message incorrect.");
     }
 
     if (g_current_test != 1) {
         pass = 0;
-        //logln("Process 5 FAILED, did not finish before sender finished.");
+        logln("Process 5 FAILED, did not finish before sender finished.");
     }
 
     if (pass) {
@@ -447,7 +449,7 @@ void proc5(void) {
 
     send_message(g_proc_table[1].m_pid, msg);
 
-    //logln("Process 5 finished.");
+    logln("Process 5 finished.");
     set_process_priority(g_proc_table[5].m_pid, LOWEST);
     while (1) {
         release_processor();
@@ -463,22 +465,22 @@ void proc6(void) {
     MSG_BUF* msg;
     if (g_current_test != 2) {
         pass = 0;
-        //logln("Process 6 FAILED, did not recieve messages after sending finished.");
+        logln("Process 6 FAILED, did not recieve messages after sending finished.");
     }
     msg = (MSG_BUF*) receive_message(&sender_id);
     if (msg->mtext[0] != 't' || msg->mtext[1] != ' ' || msg->mtext[2] != 'f' || sender_id != g_proc_table[2].m_pid) {
         pass = 0;
-        //logln("Process 6 FAILED - reception of first message incorrect.");
+        logln("Process 6 FAILED - reception of first message incorrect.");
     }
     msg = (MSG_BUF*) receive_message(&sender_id);
     if (msg->mtext[0] != 'a' || msg->mtext[1] != 'i' || msg->mtext[2] != 'l' || sender_id != g_proc_table[2].m_pid) {
         pass = 0;
-        //logln("Process 6 FAILED - reception of second message incorrect.");
+        logln("Process 6 FAILED - reception of second message incorrect.");
     }
     msg = (MSG_BUF*) receive_message(&sender_id);
     if (msg->mtext[0] != ' ' || msg->mtext[1] != 'u' || msg->mtext[2] != 's' || sender_id != g_proc_table[2].m_pid) {
         pass = 0;
-        //logln("Process 6 FAILED - reception of third message incorrect.");
+        logln("Process 6 FAILED - reception of third message incorrect.");
     }
 
     if (pass) {
@@ -489,7 +491,7 @@ void proc6(void) {
 
     send_message(g_proc_table[1].m_pid, msg);
 
-    //logln("Process 6 finished.");
+    logln("Process 6 finished.");
     set_process_priority(g_proc_table[6].m_pid, LOWEST);
     while (1) {
         release_processor();
