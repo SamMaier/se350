@@ -12,6 +12,9 @@ typedef struct {
     PCB* back[NUM_PRIORITIES];
 } PQ;
 
+/* Priority Name Array */
+char* const PRIORITY_NAME[] = { "HIGH", "MEDIUM", "LOW", "LOWEST", "NULL" };
+
 /* global variables */
 PCB **gp_pcbs; // array of pcbs
 PCB *gp_current_process = NULL; // always point to the current STATE_RUN process
@@ -520,23 +523,21 @@ void k_timer_interrupt() {
 void k_uart_interrupt() {
     uart_i_proc_pending = 1;
 }
+
 void print_queue(PQ *q) {
+    #ifdef DEBUG_0
     int i;
     PCB *current;
 
     for (i = 0; i < NUM_PRIORITIES; i++) {
-        #ifdef DEBUG_0
         printf(PRIORITY_NAME[i]);
-        #endif
-
         current = q->front[i];
         while (current != NULL) {
-            #ifdef DEBUG_0
             printf("\t%d\n", current->m_pid);
-            #endif
             current = current->mp_next;
         }
     }
+    #endif
 }
 
 void print_memory_blocked_procs() {
@@ -566,7 +567,7 @@ void print_message_blocked_procs() {
 
         if (currentPCB->m_state == STATE_BLOCKED_MSG) {
             #ifdef DEBUG_0
-            printf("\tPID: %d, PRIORITY: %d\n", current.m_pid, current.m_priority);
+            printf("\tPID: %d, PRIORITY: %s\n", current.m_pid, PRIORITY_NAME[current.m_priority]);
             #endif
         }
     }
