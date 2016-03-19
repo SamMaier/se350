@@ -1,5 +1,5 @@
-#ifndef COMMON_H_
-#define COMMON_H_
+#ifndef COMMON_H
+#define COMMON_H
 
 #define BOOL unsigned char
 #define TRUE 1
@@ -54,36 +54,36 @@
 typedef unsigned char U8;
 typedef unsigned int U32;
 
-/* initialization table item, exposed to user space */
+/* Initialization table item, exposed to user space */
 typedef struct proc_init {
-    int m_pid;               // process id
-    int m_priority;          // initial priority, not used in this example
-    int m_stack_size;        // size of stack in words
-    void (*mpf_start_pc) (); // entry point of the process
+    int m_pid;                   // process id
+    int m_priority;              // initial priority
+    int m_stack_size;            // size of stack in words
+    void (*mpf_start_pc)();      // entry point of the process
 } PROC_INIT;
 
-/* message buffer */
+/* Message Buffer */
 typedef struct msgbuf {
 #ifdef K_MSG_ENV
-    void *mp_next;  // ptr to next message received
-    int m_send_pid; // sender pid
-    int m_recv_pid; // receiver pid
-    int m_kdata[4]; // extra 16B kernel data place holder
-    int m_expiry;   // expiry time in milliseconds
+    void* mp_next;               // pointer to next message in queue
+    int m_send_pid;              // sender pid
+    int m_recv_pid;              // receiver pid
+    int m_kdata[4];              // extra 16B kernel data place holder
+    int m_expiry;                // expiry time in milliseconds
 #endif
-    int mtype;      // user defined message type
-    char mtext[1];  // body of the message
+    int mtype;                   // user defined message type
+    char mtext[1];               // body of the message
 } MSG_BUF;
 
-/* process control block */
+/* Process Control Block */
 typedef struct pcb {
-    struct pcb *mp_next;
-    U32 *mp_sp;                  // stack pointer of the process
+    struct pcb* mp_next;
+    U32* mp_sp;                  // stack pointer of the process
     U32 m_pid;                   // process id
-    U32 m_state;        // state of the process
+    U32 m_state;                 // state of the process
     U8 m_priority;               // process priority
-    MSG_BUF *mp_msg_queue_front; // the first element of the message queue
-    MSG_BUF *mp_msg_queue_back;  // the last element of the message queue
+    MSG_BUF* mp_msg_queue_front; // the first element of the message queue
+    MSG_BUF* mp_msg_queue_back;  // the last element of the message queue
 } PCB;
 
-#endif // COMMON_H_
+#endif // COMMON_H

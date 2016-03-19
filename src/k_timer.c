@@ -2,23 +2,21 @@
 #include "k_timer.h"
 
 #ifdef DEBUG_0
-#include "printf.h"
+    #include "printf.h"
 #endif
 
 #define BIT(X) (1 << X)
 
 extern int k_release_processor(void);
-extern void k_timer_interrupt(void);
+extern void k_set_timer_interrupt_pending(void);
 
 volatile uint32_t g_timer = 0; // increments every 1 ms
-
-extern int timer_i_proc_pending;
 
 /**
  * @brief: initialize timer. Only timer 0 is supported
  */
 uint32_t timer_init(uint8_t n_timer) {
-    LPC_TIM_TypeDef *pTimer;
+    LPC_TIM_TypeDef* pTimer;
     if (n_timer == 0) {
         /*
         Steps 1 & 2: system control configuration.
@@ -50,7 +48,7 @@ uint32_t timer_init(uint8_t n_timer) {
                 See Table 82 on pg110 in LPC17xx_UM
         -----------------------------------------------------
         */
-        pTimer = (LPC_TIM_TypeDef *) LPC_TIM0;
+        pTimer = (LPC_TIM_TypeDef*) LPC_TIM0;
 
     } else { /* other timer not supported yet */
         return 1;
@@ -102,12 +100,13 @@ __asm void TIMER0_IRQHandler(void) {
     PRESERVE8
     IMPORT c_TIMER0_IRQHandler
     CPSID I
-    PUSH{r4-r11, lr}
+    PUSH{r4 - r11, lr}
     BL c_TIMER0_IRQHandler
     CPSIE I
-    POP{r4-r11, pc}
+    POP{r4 - r11, pc}
 }
 
 void c_TIMER0_IRQHandler(void) {
-    k_timer_interrupt();
+    k_set_timer_interrupt_pending();
+    k_release_processor();
 }
