@@ -70,7 +70,7 @@ void process_init() {
     set_i_procs();
 
     for (i = 0; i < NUM_TEST_PROCS; i++) {
-        g_proc_table[i+1] = g_test_procs[i];
+        g_proc_table[i + 1] = g_test_procs[i];
     }
 
     // initialize priority queues
