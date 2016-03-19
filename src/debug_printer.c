@@ -53,7 +53,7 @@ void print_message_blocked_procs() {
         currentPCB = gp_pcbs[current.m_pid];
 
         if (currentPCB->m_state == STATE_BLOCKED_MSG) {
-            logln("\t%d", current.m_pid);
+            logln("\t%d (%s)", current.m_pid, PRIORITY_NAMES[current.m_priority]);
         }
     }
 }
