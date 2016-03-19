@@ -11,4 +11,7 @@
     #define logln(format, args...)
 #endif // DEBUG_0
 
+int ctoi(char);
+char itoc(int);
+
 #endif // UTILS_H

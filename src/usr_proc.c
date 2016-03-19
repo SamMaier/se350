@@ -36,16 +36,6 @@ void set_test_procs() {
     g_proc_table[PID_CLOCK].mpf_start_pc = &wall_clock_process;
 }
 
-int ctoi(char c) {
-    int ret = c - '0';
-    if (ret < 0 || ret > 9) return 0;
-    return ret;
-}
-
-char itoc(int i) {
-    return i + '0';
-}
-
 void wall_clock_print(int clock) {
     int hours = clock / 3600;
     int minutes = (clock % 3600) / 60;

@@ -74,8 +74,8 @@ void set_priority_process(void) {
         int priority = -1;
         command = (MSG_BUF*) k_receive_message(&sender);
 
-        proc_id = command->mtext[3] - '0';
-        priority = command->mtext[5] - '0';
+        proc_id = ctoi(command->mtext[3]);
+        priority = ctoi(command->mtext[5]);
 
         // Only allowing setting of usr procs and stress test procs
         if (command->mtext[4] == ' ' && proc_id <= 9 && proc_id >= 1 && priority >= HIGH && priority <= LOWEST) {
