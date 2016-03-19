@@ -9,6 +9,7 @@
 
 extern int k_release_processor(void);
 extern int k_send_message(int, MSG_BUF*);
+extern int k_send_message_internal(int, MSG_BUF*);
 extern void* k_request_memory_block(void);
 extern int k_release_memory_block(void*);
 extern MSG_BUF* dequeue_message(PCB*);
@@ -61,7 +62,7 @@ void timer_i_process() {
         while (message != NULL) {
             if (message->m_expiry <= g_timer) {
                 remove_message_delayed(message);
-                k_send_message(message->m_recv_pid, message);
+                k_send_message_internal(message->m_recv_pid, message);
                 message = message->mp_next;
             } else {
                 break;
