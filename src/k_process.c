@@ -66,6 +66,7 @@ void process_init() {
 
     set_test_procs();
     set_sys_procs();
+    set_i_procs();
 
     // initialize priority queues
     for (i = 0; i < NUM_PRIORITIES; i++) {

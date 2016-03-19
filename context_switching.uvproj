@@ -471,6 +471,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\k_timer.c</FilePath>
             </File>
+            <File>
+              <FileName>k_i_proc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\k_i_proc.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -959,6 +964,11 @@
               <FileName>k_timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\k_timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>k_i_proc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\k_i_proc.c</FilePath>
             </File>
           </Files>
         </Group>

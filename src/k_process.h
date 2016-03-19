@@ -20,5 +20,6 @@ extern U32* alloc_stack(U32 size_b); // allocate stack for a process
 extern void __rte(void);             // pop exception stack frame
 extern void set_test_procs(void);
 extern void set_sys_procs(void);
+extern void set_i_procs(void);
 
 #endif // K_PROCESS_H
