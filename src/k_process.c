@@ -24,6 +24,7 @@ volatile int timer_i_proc_pending = 0;
 volatile int uart_i_proc_pending = 0;
 
 extern void insert_message_delayed(PCB*, MSG_BUF*, int);
+extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
 /* Priority queue convenience functions, useful for external calls */
 void pq_push_ready(PCB* proc) {
@@ -67,6 +68,10 @@ void process_init() {
     set_test_procs();
     set_sys_procs();
     set_i_procs();
+
+    for (i = 0; i < NUM_TEST_PROCS; i++) {
+        g_proc_table[i + 1] = g_test_procs[i];
+    }
 
     // initialize priority queues
     for (i = 0; i < NUM_PRIORITIES; i++) {

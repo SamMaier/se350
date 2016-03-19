@@ -7,26 +7,15 @@ extern PCB** gp_pcbs;
 extern PQ g_ready_pq;
 extern PQ g_blocked_pq;
 
+const char* const PRIORITY_NAMES[] = { "HIGH", "MEDIUM", "LOW", "LOWEST", "NULL" };
+
 // Prints a priority queue
 void print_queue(PQ* q) {
     int i;
     PCB* current;
 
     for (i = 0; i < NUM_PRIORITIES; i++) {
-        if (i == 0) {
-            logln("HIGH:");
-        } else if (i == 1) {
-            logln("MEDIUM:");
-        } else if (i == 2) {
-            logln("LOW:");
-        } else if (i == 3) {
-            logln("LOWEST:");
-        } else if (i == 4) {
-            logln("NULL:");
-        } else {
-            logln("INVALID PRIORITY:");
-        }
-
+        logln("%s:", PRIORITY_NAMES[i]);
         current = q->front[i];
         while (current != NULL) {
             logln("\t%d", current->m_pid);
@@ -64,7 +53,7 @@ void print_message_blocked_procs() {
         currentPCB = gp_pcbs[current.m_pid];
 
         if (currentPCB->m_state == STATE_BLOCKED_MSG) {
-            logln("\t%d", current.m_pid);
+            logln("\t%d (%s)", current.m_pid, PRIORITY_NAMES[current.m_priority]);
         }
     }
 }
