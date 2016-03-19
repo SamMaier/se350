@@ -65,23 +65,18 @@ void set_priority_process(void) {
     MSG_BUF* command = k_request_memory_block();
     command->mtype = KCD_REG;
     strcpy(command->mtext, "%C");
-    // TODO: this should be changed to just k_send_message once that issue's fix is merged with this patch
     k_send_message(PID_KCD, command);
 
     while (1) {
         int sender = 123;
-        int proc_id = -1;
-        int priority = -1;
         command = (MSG_BUF*) k_receive_message(&sender);
 
-        proc_id = ctoi(command->mtext[3]);
-        priority = ctoi(command->mtext[5]);
-
-        // Only allowing setting of usr procs and stress test procs
-        if (command->mtext[4] == ' ' && proc_id <= 9 && proc_id >= 1 && priority >= HIGH && priority <= LOWEST) {
+        if (command->mtext[2] == ' ' && command->mtext[4] == ' ') {
+            int proc_id = ctoi(command->mtext[3]);
+            int priority = ctoi(command->mtext[5]);
             k_set_process_priority(proc_id, priority);
         } else {
-            logln("Error: invalid priority process arguments");
+            logln("Error: invalid arguments for set_priority_process");
         }
     }
 }

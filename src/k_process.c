@@ -268,7 +268,7 @@ int k_release_processor(void) {
 int k_set_process_priority(const int process_id, const int priority) {
     PCB* process;
 
-    if (process_id < 1 || process_id > 6) return RTX_ERR;
+    if (process_id < 1 || process_id > 9) return RTX_ERR;
     if (priority < HIGH || priority > LOWEST) return RTX_ERR;
 
     if (process_id == gp_current_process->m_pid) {
