@@ -34,14 +34,13 @@ extern int k_release_memory_block(void* p_mem_blk);
 extern int _release_memory_block(U32 p_func, void* p_mem_blk) __SVC_0;
 
 /* Inter-process Communication Management */
-// TODO: fix k_send_message
-extern int k_send_message_envelope(int, void*);
-#define send_message(process_id, p_msg_envelope) _send_message((U32)k_send_message_envelope, process_id, p_msg_envelope)
+extern int k_send_message(int, void*);
+#define send_message(process_id, p_msg_envelope) _send_message((U32)k_send_message, process_id, p_msg_envelope)
 extern int _send_message(U32 p_func, int process_id, void* p_msg_envelope) __SVC_0;
 
-extern void* k_receive_message(int* p_sender_pid);
-#define receive_message(p_sender_pid) _receive_message((U32)k_receive_message, p_sender_pid)
-extern void* _receive_message(U32 p_func, int* p_sender_pid) __SVC_0;
+extern void* k_receive_message(int* sender_id);
+#define receive_message(sender_id) _receive_message((U32)k_receive_message, sender_id)
+extern void* _receive_message(U32 p_func, int* sender_id) __SVC_0;
 
 /* Timing Service */
 extern int k_delayed_send(int process_id, void* p_msg_envelope, int delay);

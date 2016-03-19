@@ -339,8 +339,8 @@ MSG_BUF* dequeue_message(PCB* target) {
     return return_val;
 }
 
-MSG_BUF* create_message_headers(void* message_envelope, int target_proc_id) {
-    MSG_BUF* message = (MSG_BUF*) message_envelope;
+MSG_BUF* create_message_headers(void* p_msg_envelope, int target_proc_id) {
+    MSG_BUF* message = (MSG_BUF*) p_msg_envelope;
     message->mp_next = NULL;
     message->m_send_pid = gp_current_process->m_pid;
     message->m_recv_pid = target_proc_id;
@@ -348,7 +348,7 @@ MSG_BUF* create_message_headers(void* message_envelope, int target_proc_id) {
     return message;
 }
 
-int k_send_message(int process_id, MSG_BUF* message) {
+int k_send_message_internal(int process_id, MSG_BUF* message) {
     PCB* target = gp_pcbs[process_id];
     enqueue_message(target, message);
 
@@ -370,17 +370,17 @@ int k_send_message(int process_id, MSG_BUF* message) {
  * Sends message to given process id
  * Preempts if higher priority proc waiting for message
  */
-int k_send_message_envelope(int process_id, void* message_envelope) {
-    MSG_BUF* message = create_message_headers(message_envelope, process_id);
-    return k_send_message(process_id, message);
+int k_send_message(int process_id, void* p_msg_envelope) {
+    MSG_BUF* message = create_message_headers(p_msg_envelope, process_id);
+    return k_send_message_internal(process_id, message);
 }
 
-int k_delayed_send(int process_id, void* message_envelope, int delay) {
-    MSG_BUF* message = create_message_headers(message_envelope, process_id);
+int k_delayed_send(int process_id, void* p_msg_envelope, int delay) {
+    MSG_BUF* message = create_message_headers(p_msg_envelope, process_id);
     PCB* target;
 
     if (delay == 0) {
-        return k_send_message(process_id, message);
+        return k_send_message_internal(process_id, message);
     }
 
     target = gp_pcbs[process_id];

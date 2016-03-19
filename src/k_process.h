@@ -12,7 +12,7 @@ PCB* scheduler(void);
 int k_release_process(void);
 int k_set_process_priority(const int, const int);
 int k_get_process_priority(const int);
-int k_send_message_envelope(int process_id, void* p_msg_envelope);
+int k_send_message(int process_id, void* p_msg_envelope);
 void* k_receive_message(int* sender_id);
 int k_delayed_send(int process_id, void* p_msg_envelope, int delay);
 
