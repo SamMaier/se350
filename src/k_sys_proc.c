@@ -15,7 +15,6 @@
 #endif /* DEBUG_0 */
 
 extern int k_release_processor(void);
-extern int k_uart_interrupt(void);
 extern int k_send_message(int, MSG_BUF*);
 extern void *k_receive_message(int*);
 extern void *k_request_memory_block(void);

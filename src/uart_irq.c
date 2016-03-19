@@ -7,7 +7,7 @@
 #endif
 
 extern int k_release_processor(void);
-extern void k_uart_interrupt(void);
+extern void k_set_uart_interrupt_pending(void);
 
 /**
  * @brief: initialize the n_uart
@@ -87,7 +87,7 @@ int uart_irq_init(int n_uart) {
 
     /* Step 3b: 115200 baud rate @ 25.0 MHZ PCLK */
     pUart->DLM = 0; /* see table 274, pg302 in LPC17xx_UM */
-    pUart->DLL = 9;	/* see table 273, pg302 in LPC17xx_UM */
+    pUart->DLL = 9; /* see table 273, pg302 in LPC17xx_UM */
 
     /* FR = 1.507 ~ 1/2, DivAddVal = 1, MulVal = 2
        FR = 1.507 = 25MHZ/(16*9*115200)
@@ -162,6 +162,6 @@ __asm void UART0_IRQHandler(void) {
  * @brief: c UART0 IRQ Handler
  */
 void c_UART0_IRQHandler(void) {
-    k_uart_interrupt();
+    k_set_uart_interrupt_pending();
     k_release_processor();
 }

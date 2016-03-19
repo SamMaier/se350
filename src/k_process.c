@@ -501,11 +501,11 @@ void *k_receive_message(int *sender_id) {
     return (void*)message;
 }
 
-void k_timer_interrupt() {
+void k_set_timer_interrupt_pending() {
     timer_i_proc_pending = 1;
 }
 
-void k_uart_interrupt() {
+void k_set_uart_interrupt_pending() {
     uart_i_proc_pending = 1;
 }
 void print_queue(PQ *q) {

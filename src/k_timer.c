@@ -8,7 +8,7 @@
 #define BIT(X) (1 << X)
 
 extern int k_release_processor(void);
-extern void k_timer_interrupt(void);
+extern void k_set_timer_interrupt_pending(void);
 
 volatile uint32_t g_timer = 0; // increments every 1 ms
 
@@ -107,6 +107,6 @@ __asm void TIMER0_IRQHandler(void) {
 }
 
 void c_TIMER0_IRQHandler(void) {
-    k_timer_interrupt();
+    k_set_timer_interrupt_pending();
     k_release_processor();
 }
