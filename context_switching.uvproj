@@ -426,6 +426,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\uart_irq.c</FilePath>
             </File>
+            <File>
+              <FileName>pq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\pq.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -904,6 +909,11 @@
               <FileName>uart_irq.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\uart_irq.c</FilePath>
+            </File>
+            <File>
+              <FileName>pq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\pq.c</FilePath>
             </File>
           </Files>
         </Group>
