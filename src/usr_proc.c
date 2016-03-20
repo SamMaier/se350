@@ -134,6 +134,7 @@ void proc1(void) {
     while (1) {
         for (i = 0; i < 500000; i++);
         printf("Proc1\r\n");
+        release_processor();
     }
 }
 
@@ -145,6 +146,7 @@ void proc2(void) {
     while (1) {
         for (i = 0; i < 500000; i++);
         printf("Proc2\r\n");
+        release_processor();
     }
 }
 
@@ -156,6 +158,7 @@ void proc3(void) {
     while (1) {
         for (i = 0; i < 500000; i++);
         printf("Proc3\r\n");
+        release_processor();
     }
 }
 
@@ -167,6 +170,7 @@ void proc4(void) {
     while (1) {
         for (i = 0; i < 500000; i++);
         printf("Proc4\r\n");
+        release_processor();
     }
 }
 
@@ -178,6 +182,7 @@ void proc5(void) {
     while (1) {
         for (i = 0; i < 500000; i++);
         printf("Proc5\r\n");
+        release_processor();
     }
 }
 
@@ -189,6 +194,7 @@ void proc6(void) {
     while (1) {
         for (i = 0; i < 500000; i++);
         printf("Proc6\r\n");
+        release_processor();
     }
 }
 #endif
