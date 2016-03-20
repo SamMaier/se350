@@ -278,6 +278,12 @@ int k_set_process_priority(const int process_id, const int priority) {
 
     process = pq_pop_PCB_ready(gp_pcbs[process_id]);
     if (process == NULL) process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
+    else process = gp_pcbs[process_id];
+
+    if (process == NULL) {
+        logln("k_set_process_priority: trying to set the priority of process with id: %d, but process was not found", process_id);
+        return RTX_ERR;
+    }
 
     process->m_priority = priority;
     switch (process->m_state) {
