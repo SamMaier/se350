@@ -130,11 +130,13 @@ void* k_request_memory_block(void) {
         count++;
 #endif
     } else {
-#ifdef DEBUG_0
         logln("Out of memory, oops");
-#endif
-        /* we have no free memory, set current process to STATE_BLOCKED_MEMORY */
-        gp_current_process->m_state = STATE_BLOCKED_MEMORY;
+
+        if (gp_current_process->m_priority != INTERRUPT) {
+            /* we have no free memory, set current process to STATE_BLOCKED_MEMORY */
+            gp_current_process->m_state = STATE_BLOCKED_MEMORY;
+        }
+
         k_release_processor();
     }
 
@@ -154,15 +156,11 @@ int k_release_memory_block(void* p_mem_blk) {
     U32* head_value = gp_heap_head;
 
 #ifdef DEBUG_0
-    logln("k_release_memory_block: releasing block #%d @ 0x%x", count, p_mem_blk);
+    logln("k_release_memory_block: releasing block #%d @ 0x%x", --count, p_mem_blk);
 #endif
 
     gp_heap_head = (U32*)p_mem_blk;
     *gp_heap_head = (U32)head_value;
-
-#ifdef DEBUG_0
-    count--;
-#endif
 
     /* preempt the current process if a blocked process has a higher priority */
     if (blocked_proc != NULL) {
