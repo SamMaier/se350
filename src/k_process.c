@@ -68,6 +68,7 @@ void process_init() {
     set_test_procs();
     set_sys_procs();
     set_i_procs();
+    set_stress_test_procs();
 
     for (i = 0; i < NUM_TEST_PROCS; i++) {
         g_proc_table[i + 1] = g_test_procs[i];

@@ -21,5 +21,6 @@ extern void __rte(void);             // pop exception stack frame
 extern void set_test_procs(void);
 extern void set_sys_procs(void);
 extern void set_i_procs(void);
+extern void set_stress_test_procs(void);
 
 #endif // K_PROCESS_H

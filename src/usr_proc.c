@@ -10,7 +10,6 @@
 //#define MESSAGE_TESTS
 //#define KCD_CRT_TESTS
 #define SET_PROC_PRIORITY_TESTS
-#define STRESS_TESTS
 
 #define ONE_SECOND 30
 
@@ -632,48 +631,5 @@ void proc3(void) { while (1) { logln("Process 3"); release_processor(); } }
 void proc4(void) { while (1) { logln("Process 4"); release_processor(); } }
 void proc5(void) { while (1) { logln("Process 5"); release_processor(); } }
 void proc6(void) { while (1) { logln("Process 6"); release_processor(); } }
-
-#endif
-
-#ifdef STRESS_TESTS
-
-void procA(void) {
-    MSG_BUF* cmd = request_memory_block();
-
-    cmd->mtype = KCD_REG;
-    strcpy(cmd->mtext, "%Z");
-    logln("Registering for command %Z");
-    send_message(PID_KCD, cmd);
-
-    int waiting_on_command = 1;
-    while (waiting_on_command) {
-        int sender = 123321;
-        cmd = receive_message(&sender);
-
-        switch (sender) {
-        case PID_KCD:
-            if (cmd->mtext[1] == 'Z') {
-                release_memory_block(cmd);
-                waiting_on_command = 0;
-            } else {
-                release_memory_block(cmd);
-            }
-        }
-    }
-
-    int num = 0;
-
-    while (1) {
-        MSG_BUF* msg = (MSG_BUF*) request_memory_block();
-        msg->mtype = COUNT_REPORT;
-        msg->mtext[0] = num;
-        msg->m_send_pid = PID_A;
-        msg->m_recv_pid = PID_B;
-        send_message(PID_KCD, msg);
-        num++;
-
-        release_processor();
-    }
-}
 
 #endif
