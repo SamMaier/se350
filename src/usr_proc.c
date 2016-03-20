@@ -30,11 +30,78 @@ void set_test_procs() {
         g_test_procs[i].mpf_start_pc = g_test_proc_funcs[i];
     }
 
+    /* process c */
+    g_proc_table[PID_C].m_pid        = PID_C;
+    g_proc_table[PID_C].m_priority   = LOWEST;
+    g_proc_table[PID_C].m_stack_size = 0x100;
+    g_proc_table[PID_C].mpf_start_pc = &process_c;
+
     /* wall clock process */
     g_proc_table[PID_CLOCK].m_pid        = PID_CLOCK;
     g_proc_table[PID_CLOCK].m_priority   = LOWEST;
     g_proc_table[PID_CLOCK].m_stack_size = 0x100;
     g_proc_table[PID_CLOCK].mpf_start_pc = &wall_clock_process;
+}
+
+void process_c() {
+    MSG_BUF* front = NULL;
+    MSG_BUF* back = NULL;
+    MSG_BUF* p;
+    MSG_BUF* q;
+    int sender = 345;
+
+    while (1) {
+        if (front == NULL) {
+            p = (MSG_BUF*) request_memory_block();
+            p = receive_message(&sender);
+        } else {
+            // dequeue p from the local queue
+            p = front;
+            front = front->mp_next;
+            if (front == NULL) {
+                back = NULL;
+            }
+        }
+
+        if (p->mtype == COUNT_REPORT) {
+            if (p->m_kdata[0] % 20 == 0) {
+                p->mtext[0] = 'P';
+                p->mtext[1] = 'r';
+                p->mtext[2] = 'o';
+                p->mtext[3] = 'c';
+                p->mtext[4] = 'e';
+                p->mtext[5] = 's';
+                p->mtext[6] = 's';
+                p->mtext[7] = ' ';
+                p->mtext[8] = 'C';
+                send_message(PID_CRT, p);
+
+                // hibernate
+                q = (MSG_BUF*) request_memory_block();
+                q->mtype = WAKEUP_10;
+                delayed_send(PID_C, q, ONE_SECOND * 10);
+
+                while (1) {
+                    p = receive_message(&sender);
+                    if (p->mtype == WAKEUP_10) {
+                        break;
+                    } else {
+                        // push p to the local queue
+                        if (front == NULL) {
+                            front = p;
+                            back = p;
+                        } else {
+                            back->mp_next = p;
+                            back = p;
+                        }
+                    }
+                }
+            }
+        }
+
+        release_memory_block(p);
+        k_release_processor();
+    }
 }
 
 void wall_clock_print(int clock) {

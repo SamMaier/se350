@@ -49,6 +49,8 @@
 #define DEFAULT 0
 #define KCD_REG 1
 #define CRT_DISPLAY 2
+#define COUNT_REPORT 3
+#define WAKEUP_10 4
 
 /* Types */
 typedef unsigned char U8;
