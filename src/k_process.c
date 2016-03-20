@@ -66,9 +66,9 @@ void process_init() {
     }
 
     set_test_procs();
+    set_stress_procs();
     set_sys_procs();
     set_i_procs();
-    set_stress_test_procs();
 
     for (i = 0; i < NUM_TEST_PROCS; i++) {
         g_proc_table[i + 1] = g_test_procs[i];
@@ -152,7 +152,7 @@ PCB* scheduler(void) {
     }
 }
 
-__asm __new_special_proc_rte() {
+__asm __new_kernel_proc_rte() {
     POP {r0 - r4, r12, pc}
 }
 
@@ -192,11 +192,19 @@ int process_switch(PCB* p_pcb_old) {
         gp_current_process->m_state = STATE_RUN;
         __set_MSP((U32) gp_current_process->mp_sp);
 
-        // for some reason, we must call __new_special_proc_rte for the KCD and CRT procs too
-        if (gp_current_process->m_pid == 0 || (gp_current_process->m_pid > 6 && gp_current_process->m_pid != PID_CLOCK)) {
-            __new_special_proc_rte();
-        } else {
-            __rte();  // pop exception stack frame from the stack for a new processes
+        switch (gp_current_process->m_pid) {
+        case PID_NULL:
+        case PID_KCD:
+        case PID_CRT:
+        case PID_TIMER_IPROC:
+        case PID_UART_IPROC:
+            // any process requiring kernel functions should call this
+            __new_kernel_proc_rte();
+            break;
+        default:
+            // pop exception stack frame from the stack for a new processes
+            __rte();
+            break;
         }
     }
 

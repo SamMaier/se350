@@ -1,33 +1,30 @@
 #include <LPC17xx.H>
+#include "stress_proc.h"
 #include <string.h>
 #include "rtx.h"
 #include "uart_polling.h"
-#include "stress_proc.h"
 #include "utils.h"
 
 extern PROC_INIT g_proc_table[];
-PROC_INIT g_stress_procs[NUM_STRESS_TEST_PROCS];
 
-void (*g_stress_procs[])(void) = { &procA, &procB, &procC };
+void set_stress_procs() {
+    g_proc_table[PID_A].m_pid = PID_A;
+    g_proc_table[PID_A].m_priority = HIGH;
+    g_proc_table[PID_A].m_stack_size = 0x100;
+    g_proc_table[PID_A].mpf_start_pc = &procA;
 
-void set_stress_test_procs() {
-    g_stress_procs[PID_A].m_pid = PID_A;
-    g_stress_procs[PID_A].m_priority = HIGH;
-    g_stress_procs[PID_A].m_stack_size = 0x100;
-    g_stress_procs[PID_A].mpf_start_pc = &procA;
+    g_proc_table[PID_B].m_pid = PID_B;
+    g_proc_table[PID_B].m_priority = HIGH;
+    g_proc_table[PID_B].m_stack_size = 0x100;
+    g_proc_table[PID_B].mpf_start_pc = &procB;
 
-    g_stress_procs[PID_B].m_pid = PID_B;
-    g_stress_procs[PID_B].m_priority = HIGH;
-    g_stress_procs[PID_B].m_stack_size = 0x100;
-    g_stress_procs[PID_B].mpf_start_pc = &procB;
-
-    g_stress_procs[PID_C].m_pid = PID_C;
-    g_stress_procs[PID_C].m_priority = HIGH;
-    g_stress_procs[PID_C].m_stack_size = 0x100;
-    g_stress_procs[PID_C].mpf_start_pc = &procC;
+    g_proc_table[PID_C].m_pid = PID_C;
+    g_proc_table[PID_C].m_priority = HIGH;
+    g_proc_table[PID_C].m_stack_size = 0x100;
+    g_proc_table[PID_C].mpf_start_pc = &procC;
 }
 
-void procA(void) {
+void procA() {
     MSG_BUF* cmd = request_memory_block();
     int num = 0;
 
@@ -61,10 +58,10 @@ void procA(void) {
     }
 }
 
-void procB(void) {
+void procB() {
 
 }
 
-void procC(void) {
+void procC() {
 
 }
