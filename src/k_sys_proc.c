@@ -4,12 +4,14 @@
 #include "uart.h"
 #include "uart_polling.h"
 #include "k_memory.h"
+#include "utils.h"
 
 extern int k_release_processor(void);
 extern int k_send_message(int, MSG_BUF*);
-extern void* k_receive_message(int*);
-extern void* k_request_memory_block(void);
+extern int k_send_message(int, MSG_BUF*);
+extern int k_set_process_priority(const int, const int);
 extern int k_release_memory_block(void*);
+extern void* k_receive_message(int*);
 
 extern PROC_INIT g_proc_table[NUM_PROCS];
 
@@ -33,6 +35,12 @@ void set_sys_procs() {
     g_proc_table[PID_NULL].m_stack_size = 0x100;
     g_proc_table[PID_NULL].mpf_start_pc = &null_process;
 
+    /* set priority process */
+    g_proc_table[PID_SET_PRIO].m_pid = PID_SET_PRIO;
+    g_proc_table[PID_SET_PRIO].m_priority = HIGH;
+    g_proc_table[PID_SET_PRIO].m_stack_size = 0x100;
+    g_proc_table[PID_SET_PRIO].mpf_start_pc = &set_priority_process;
+
     /* keyboard command decoder process */
     g_proc_table[PID_KCD].m_pid = PID_KCD;
     g_proc_table[PID_KCD].m_priority = HIGH;
@@ -50,6 +58,28 @@ void set_sys_procs() {
 void null_process() {
     while (1) {
         k_release_processor();
+    }
+}
+
+void set_priority_process(void) {
+    MSG_BUF* command = k_request_memory_block();
+    command->mtype = KCD_REG;
+    strcpy(command->mtext, "%C");
+    k_send_message(PID_KCD, command);
+
+    while (1) {
+        int sender = 123;
+        int proc_id = -1;
+        int priority = -1;
+        command = (MSG_BUF*) k_receive_message(&sender);
+
+        if (command->mtext[2] == ' ' && command->mtext[4] == ' ') {
+            proc_id = ctoi(command->mtext[3]);
+            priority = ctoi(command->mtext[5]);
+            k_set_process_priority(proc_id, priority);
+        } else {
+            logln("Error: invalid arguments for set_priority_process");
+        }
     }
 }
 
@@ -91,6 +121,7 @@ void kcd_process(void) {
                         strcpy(command_block->mtext, g_command_buffer);
                         k_send_message(g_KCD_REG[g_command_buffer[1]], command_block);
                     } else {
+                        logln("Out of memory");
                         // Ran out of memory
                     }
                 }

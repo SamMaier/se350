@@ -7,8 +7,9 @@
 
 //#define SIMPLE_TESTS
 //#define MEMORY_TESTS
-// #define MESSAGE_TESTS
-#define KCD_CRT_TESTS
+//#define MESSAGE_TESTS
+//#define KCD_CRT_TESTS
+#define SET_PROC_PRIORITY_TESTS
 
 #define ONE_SECOND 30
 
@@ -34,16 +35,6 @@ void set_test_procs() {
     g_proc_table[PID_CLOCK].m_priority   = LOWEST;
     g_proc_table[PID_CLOCK].m_stack_size = 0x100;
     g_proc_table[PID_CLOCK].mpf_start_pc = &wall_clock_process;
-}
-
-int ctoi(char c) {
-    int ret = c - '0';
-    if (ret < 0 || ret > 9) return 0;
-    return ret;
-}
-
-char itoc(int i) {
-    return i + '0';
 }
 
 void wall_clock_print(int clock) {
@@ -127,6 +118,86 @@ void wall_clock_process() {
         release_processor();
     }
 }
+
+#ifdef SET_PROC_PRIORITY_TESTS
+/**
+ * @brief: A process that runs our 5 tests
+ */
+void proc1(void) {
+    int i;
+    set_process_priority(g_proc_table[1].m_pid, MEDIUM);
+
+    for (i = 2; i <= NUM_TEST_PROCS; i++) {
+        set_process_priority(g_proc_table[i].m_pid, LOW);
+    }
+
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc1\r\n");
+        release_processor();
+    }
+}
+
+/**
+ * @brief: empty function that prints occasionally
+ */
+void proc2(void) {
+    int i;
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc2\r\n");
+        release_processor();
+    }
+}
+
+/**
+ * @brief: empty function that prints occasionally
+ */
+void proc3(void) {
+    int i;
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc3\r\n");
+        release_processor();
+    }
+}
+
+/**
+ * @brief: empty function that prints occasionally
+ */
+void proc4(void) {
+    int i;
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc4\r\n");
+        release_processor();
+    }
+}
+
+/**
+ * @brief: empty function that prints occasionally
+ */
+void proc5(void) {
+    int i;
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc5\r\n");
+        release_processor();
+    }
+}
+
+/**
+ * @brief: empty function that prints occasionally
+ */
+void proc6(void) {
+    int i;
+    while (1) {
+        for (i = 0; i < 500000; i++);
+        printf("Proc6\r\n");
+        release_processor();
+    }
+}
+#endif
 
 #ifdef MEMORY_TESTS
 /**
