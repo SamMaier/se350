@@ -69,11 +69,13 @@ void set_priority_process(void) {
 
     while (1) {
         int sender = 123;
+        int proc_id = -1;
+        int priority = -1;
         command = (MSG_BUF*) k_receive_message(&sender);
 
         if (command->mtext[2] == ' ' && command->mtext[4] == ' ') {
-            int proc_id = ctoi(command->mtext[3]);
-            int priority = ctoi(command->mtext[5]);
+            proc_id = ctoi(command->mtext[3]);
+            priority = ctoi(command->mtext[5]);
             k_set_process_priority(proc_id, priority);
         } else {
             logln("Error: invalid arguments for set_priority_process");
