@@ -59,9 +59,13 @@ void procA() {
 }
 
 void procB() {
-
+    while (1) {
+        release_processor();
+    }
 }
 
 void procC() {
-
+    while (1) {
+        release_processor();
+    }
 }
