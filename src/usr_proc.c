@@ -11,8 +11,6 @@
 //#define KCD_CRT_TESTS
 #define SET_PROC_PRIORITY_TESTS
 
-#define ONE_SECOND 30
-
 extern PROC_INIT g_proc_table[];
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
