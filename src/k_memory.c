@@ -116,30 +116,33 @@ U32* alloc_stack(U32 size_b) {
  * POST: gp_stack is updated
  */
 void* k_request_memory_block(void) {
-    void* returnVal = (void*)gp_heap_head;
-
+    void* returnVal;
+    
 #ifdef DEBUG_0
     log("k_request_memory_block #%d: entering ...", count);
 #endif
-
-    if (gp_heap_head != NULL) {
-        // making sure we do not deference the HEAD if it is null.
-        gp_heap_head = (U32*)(*gp_heap_head);
+    
+    do {
+        returnVal = (void*)gp_heap_head;
+        if (gp_heap_head != NULL) {
+            // making sure we do not deference the HEAD if it is null.
+            gp_heap_head = (U32*)(*gp_heap_head);
 
 #ifdef DEBUG_0
-        logln(" allocated");
-        count++;
+            logln(" allocated");
+            count++;
 #endif
-    } else {
-        logln("Out of memory, oops");
+        } else {
+            logln("Out of memory, oops");
 
-        if (gp_current_process->m_priority != INTERRUPT) {
-            /* we have no free memory, set current process to STATE_BLOCKED_MEMORY */
-            gp_current_process->m_state = STATE_BLOCKED_MEMORY;
+            if (gp_current_process->m_priority != INTERRUPT) {
+                /* we have no free memory, set current process to STATE_BLOCKED_MEMORY */
+                gp_current_process->m_state = STATE_BLOCKED_MEMORY;
+            }
+
+            k_release_processor();
         }
-
-        k_release_processor();
-    }
+    } while (returnVal == NULL);
 
     return returnVal;
 }
