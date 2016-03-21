@@ -31,6 +31,22 @@ void print_ready_procs() {
     print_queue(&g_ready_pq);
 }
 
+void print_all_procs() {
+    int i;
+    logln("All Processes");
+    logln("----------------------------");
+
+    for (i = 0; i < NUM_PROCS; i++) {
+        PCB* proc = gp_pcbs[i];
+
+        if (proc->m_priority == INTERRUPT) {
+            logln("\tPID: %d\tINTER\tState: %d", i, proc->m_state);
+        } else {
+            logln("\tPID: %d\t%s\tState: %d", i, PRIORITY_NAMES[proc->m_priority], proc->m_state);
+        }
+    }
+}
+
 void print_memory_blocked_procs() {
     logln("Processes blocked on memory");
     logln("---------------------------");

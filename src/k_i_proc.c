@@ -106,6 +106,8 @@ void uart_i_process() {
 #ifdef _DEBUG_HOTKEYS
             if (g_char_in == 'r') {
                 print_ready_procs();
+            } else if (g_char_in == 'a') {
+                print_all_procs();
             } else if (g_char_in == 'm') {
                 print_memory_blocked_procs();
             } else if (g_char_in == 's') {
