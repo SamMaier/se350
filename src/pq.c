@@ -66,7 +66,7 @@ PCB* pq_pop_PCB(PQ* pq, const PCB* proc) {
     }
 
     /* proc does not exist */
-    if (temp_proc->mp_next == NULL) return NULL;
+    if (temp_proc == NULL || temp_proc->mp_next == NULL) return NULL;
 
     /* remove and return temp_proc->mp_next */
     found_proc = temp_proc->mp_next;

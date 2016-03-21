@@ -62,28 +62,32 @@ void null_process() {
 }
 
 void set_priority_process(void) {
-    MSG_BUF* command = k_request_memory_block();
-    command->mtype = KCD_REG;
-    strcpy(command->mtext, "%C");
-    k_send_message(PID_KCD, command);
+    MSG_BUF* msg = k_request_memory_block();
+    msg->mtype = KCD_REG;
+    strcpy(msg->mtext, "%C");
+    k_send_message(PID_KCD, msg);
 
     while (1) {
         int sender = 123;
         int proc_id = -1;
         int priority = -1;
-        command = (MSG_BUF*) k_receive_message(&sender);
-        
-        // We must validate proc_id, priority.
-        // Thus, we need to check their values as is
-        // we can't use any "safe" function calls, since we want to know if they were unsafe values
-        proc_id = command->mtext[3] - '0';
-        priority = command->mtext[5] - '0';
+        msg = (MSG_BUF*) k_receive_message(&sender);
 
-        if (command->mtext[2] == ' ' && command->mtext[4] == ' ' &&
-                proc_id <= 9 && proc_id >= 1 && priority >= HIGH && priority <= LOWEST) {
-            k_set_process_priority(proc_id, priority);
+        if (msg->mtext[2] == ' ' && (msg->mtext[4] == ' ' || msg->mtext[5] == ' ' )) {
+            if (msg->mtext[4] == ' ') {
+                // 1-digit PID
+                proc_id = msg->mtext[3] - '0';
+                priority = msg->mtext[5] - '0';
+            } else if (msg->mtext[5] == ' ') {
+                // 2-digit PID
+                proc_id = 10 * (msg->mtext[3] - '0') + (msg->mtext[4] - '0');
+                priority = msg->mtext[6] - '0';
+            }
+            if (k_set_process_priority(proc_id, priority) == RTX_ERR) {
+                logln("Error: invalid arguments for set_priority_process");
+            }
         } else {
-            logln("Error: invalid arguments for set_priority_process");
+            logln("Error: invalid format for set_priority_process");
         }
     }
 }

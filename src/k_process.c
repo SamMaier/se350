@@ -280,7 +280,14 @@ int k_release_processor(void) {
 int k_set_process_priority(const int process_id, const int priority) {
     PCB* process;
 
-    if (process_id < 1 || process_id > 9) return RTX_ERR;
+    switch (process_id) {
+        case PID_NULL:
+        case PID_TIMER_IPROC:
+        case PID_UART_IPROC:
+            return RTX_ERR;
+        default:
+            break;
+    }
     if (priority < HIGH || priority > LOWEST) return RTX_ERR;
 
     if (process_id == gp_current_process->m_pid) {
@@ -289,8 +296,12 @@ int k_set_process_priority(const int process_id, const int priority) {
     }
 
     process = pq_pop_PCB_ready(gp_pcbs[process_id]);
-    if (process == NULL) process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
-    else process = gp_pcbs[process_id];
+    if (process == NULL) {
+        process = pq_pop_PCB_blocked(gp_pcbs[process_id]);
+    }
+    if (process == NULL) {
+        process = gp_pcbs[process_id];
+    }
 
     if (process == NULL) {
         logln("k_set_process_priority: trying to set the priority of process with id: %d, but process was not found", process_id);
