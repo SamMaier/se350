@@ -72,10 +72,15 @@ void set_priority_process(void) {
         int proc_id = -1;
         int priority = -1;
         command = (MSG_BUF*) k_receive_message(&sender);
+        
+        // We must validate proc_id, priority.
+        // Thus, we need to check their values as is
+        // we can't use any "safe" function calls, since we want to know if they were unsafe values
+        proc_id = command->mtext[3] - '0';
+        priority = command->mtext[5] - '0';
 
-        if (command->mtext[2] == ' ' && command->mtext[4] == ' ') {
-            proc_id = ctoi(command->mtext[3]);
-            priority = ctoi(command->mtext[5]);
+        if (command->mtext[2] == ' ' && command->mtext[4] == ' ' &&
+                proc_id <= 9 && proc_id >= 1 && priority >= HIGH && priority <= LOWEST) {
             k_set_process_priority(proc_id, priority);
         } else {
             logln("Error: invalid arguments for set_priority_process");
