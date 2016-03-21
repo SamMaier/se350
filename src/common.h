@@ -10,7 +10,6 @@
 
 #define NUM_PROCS 16
 #define NUM_TEST_PROCS 6
-#define NUM_STRESS_TEST_PROCS 3
 #define NUM_PRIORITIES 5
 
 /* Process IDs */

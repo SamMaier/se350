@@ -194,6 +194,7 @@ int process_switch(PCB* p_pcb_old) {
 
         switch (gp_current_process->m_pid) {
         case PID_NULL:
+        case PID_SET_PRIO:
         case PID_KCD:
         case PID_CRT:
         case PID_TIMER_IPROC:
