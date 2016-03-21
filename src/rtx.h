@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#define ONE_SECOND 30
+
 /* ----- RTX User API ----- */
 #define __SVC_0  __svc_indirect(0)
 
