@@ -74,7 +74,6 @@ void procC() {
 
     while (1) {
         if (front == NULL) {
-            p = (MSG_BUF*) request_memory_block();
             p = receive_message(NULL);
         } else {
             // dequeue p from the local queue
