@@ -82,6 +82,7 @@ void procC() {
             if (front == NULL) {
                 back = NULL;
             }
+            p->mp_next = NULL;
         }
 
         if (p->mtype == COUNT_REPORT) {
@@ -95,6 +96,7 @@ void procC() {
                 p->mtext[6] = 's';
                 p->mtext[7] = ' ';
                 p->mtext[8] = 'C';
+                p->mtype = CRT_DISPLAY;
                 send_message(PID_CRT, p);
 
                 // hibernate
