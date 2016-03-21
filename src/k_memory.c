@@ -117,11 +117,11 @@ U32* alloc_stack(U32 size_b) {
  */
 void* k_request_memory_block(void) {
     void* returnVal;
-    
+
 #ifdef DEBUG_0
     log("k_request_memory_block #%d: entering ...", count);
 #endif
-    
+
     do {
         returnVal = (void*)gp_heap_head;
         if (gp_heap_head != NULL) {
@@ -167,10 +167,13 @@ int k_release_memory_block(void* p_mem_blk) {
     *gp_heap_head = (U32)head_value;
 
     /* preempt the current process if a blocked process has a higher priority */
-    if (blocked_proc != NULL && gp_current_process->m_priority != INTERRUPT) {
+    if (blocked_proc != NULL) {
         blocked_proc->m_state = STATE_READY;
         pq_push_ready(blocked_proc);
-        k_release_processor();
+
+        if (gp_current_process->m_priority != INTERRUPT) {
+            k_release_processor();
+        }
     }
 
     return RTX_OK;
