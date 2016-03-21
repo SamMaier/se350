@@ -852,7 +852,7 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>DEBUG_0</Define>
+              <Define>DEBUG_0 K_MSG_ENV _DEBUG_HOTKEYS</Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
@@ -868,7 +868,7 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>NO_CRP</Define>
+              <Define></Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>
