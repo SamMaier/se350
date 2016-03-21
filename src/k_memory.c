@@ -164,7 +164,7 @@ int k_release_memory_block(void* p_mem_blk) {
     *gp_heap_head = (U32)head_value;
 
     /* preempt the current process if a blocked process has a higher priority */
-    if (blocked_proc != NULL) {
+    if (blocked_proc != NULL && gp_current_process->m_priority != INTERRUPT) {
         blocked_proc->m_state = STATE_READY;
         pq_push_ready(blocked_proc);
         k_release_processor();
