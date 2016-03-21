@@ -96,13 +96,16 @@ void procC() {
                 p->mtext[6] = 's';
                 p->mtext[7] = ' ';
                 p->mtext[8] = 'C';
+                p->mtext[9] = '\r';
+                p->mtext[10] = '\n';
+                p->mtext[11] = '\0';
                 p->mtype = CRT_DISPLAY;
                 send_message(PID_CRT, p);
 
                 // hibernate
                 q = (MSG_BUF*) request_memory_block();
                 q->mtype = WAKEUP_10;
-                delayed_send(PID_C, q, ONE_SECOND * 10);
+                delayed_send(PID_C, q, ONE_SECOND * 1); // TODO: change to 10 seconds
 
                 while (1) {
                     p = receive_message(NULL);

@@ -121,6 +121,8 @@ PCB* scheduler(void) {
     if (old_proc != NULL && old_proc->m_priority != INTERRUPT) {
         switch (old_proc->m_state) {
         case STATE_BLOCKED_MEMORY:
+            pq_push_blocked(old_proc);
+            break;
         case STATE_BLOCKED_MSG:
             break;
         case STATE_NEW:

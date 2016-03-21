@@ -11,6 +11,7 @@ U32* gp_heap_head; // points to the first free memory block in our heap linked l
 
 extern PCB* gp_current_process;
 extern int k_release_processor(void);
+extern void pq_push_ready(PCB*);
 extern PCB* pq_pop_blocked(void);
 extern void pq_push_blocked(PCB*);
 
@@ -165,7 +166,7 @@ int k_release_memory_block(void* p_mem_blk) {
     /* preempt the current process if a blocked process has a higher priority */
     if (blocked_proc != NULL) {
         blocked_proc->m_state = STATE_READY;
-        pq_push_blocked(blocked_proc);
+        pq_push_ready(blocked_proc);
         k_release_processor();
     }
 

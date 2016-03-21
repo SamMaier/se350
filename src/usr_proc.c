@@ -8,8 +8,8 @@
 //#define SIMPLE_TESTS
 //#define MEMORY_TESTS
 //#define MESSAGE_TESTS
-//#define KCD_CRT_TESTS
-#define SET_PROC_PRIORITY_TESTS
+#define KCD_CRT_TESTS
+//#define SET_PROC_PRIORITY_TESTS
 
 extern PROC_INIT g_proc_table[];
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
