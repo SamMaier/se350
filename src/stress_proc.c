@@ -104,7 +104,7 @@ void procC() {
                 delayed_send(PID_C, q, ONE_SECOND * 10);
 
                 while (1) {
-                    p = receive_message(&sender);
+                    p = receive_message(NULL);
                     if (p->mtype == WAKEUP_10) {
                         break;
                     } else {
