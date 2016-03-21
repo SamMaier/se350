@@ -5,7 +5,7 @@
     #include "printf.h"
 
     #define log(format, args...) printf(format, ## args);
-    #define logln(format, args...) log(format, ## args); printf("\n");
+    #define logln(format, args...) log(format, ## args); printf("\r\n");
 #else
     #define log(format, args...)
     #define logln(format, args...)
