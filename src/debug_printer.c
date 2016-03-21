@@ -8,6 +8,7 @@ extern PQ g_ready_pq;
 extern PQ g_blocked_pq;
 
 const char* const PRIORITY_NAMES[] = { "HIGH", "MEDIUM", "LOW", "LOWEST", "NULL" };
+const char* const STATE_NAMES[] = { "NEW", "READY", "RUN", "MEM", "MSG" };
 
 // Prints a priority queue
 void print_queue(PQ* q) {
@@ -40,9 +41,9 @@ void print_all_procs() {
         PCB* proc = gp_pcbs[i];
 
         if (proc->m_priority == INTERRUPT) {
-            logln("\tPID: %d\tINTER\tState: %d", i, proc->m_state);
+            logln("\t%d\tINTER\t%s", i, STATE_NAMES[proc->m_state]);
         } else {
-            logln("\tPID: %d\t%s\tState: %d", i, PRIORITY_NAMES[proc->m_priority], proc->m_state);
+            logln("\t%d\t%s\t%s", i, PRIORITY_NAMES[proc->m_priority], STATE_NAMES[proc->m_state]);
         }
     }
 }
