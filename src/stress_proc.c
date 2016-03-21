@@ -126,6 +126,6 @@ void procC() {
         }
 
         release_memory_block(p);
-        k_release_processor();
+        release_processor();
     }
 }
