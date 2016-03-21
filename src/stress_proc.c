@@ -71,12 +71,11 @@ void procC() {
     MSG_BUF* back = NULL;
     MSG_BUF* p;
     MSG_BUF* q;
-    int sender = 345;
 
     while (1) {
         if (front == NULL) {
             p = (MSG_BUF*) request_memory_block();
-            p = receive_message(&sender);
+            p = receive_message(NULL);
         } else {
             // dequeue p from the local queue
             p = front;
