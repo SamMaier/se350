@@ -442,7 +442,7 @@ void* k_receive_message(int* sender_id) {
 }
 
 void k_set_timer_interrupt_pending() {
-    timer_i_proc_pending = 1;
+	timer_i_proc_pending = 1;
 }
 
 void k_set_uart_interrupt_pending() {

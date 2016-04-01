@@ -15,6 +15,8 @@
 extern PROC_INIT g_proc_table[];
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
+extern LPC_TIM_TypeDef* g_timing_timer;
+
 void (*g_test_proc_funcs[])(void) = { &proc1, &proc2, &proc3, &proc4, &proc5, &proc6 };
 
 int g_current_test;
@@ -637,6 +639,17 @@ void proc6(void) { while (1) { logln("Process 6"); release_processor(); } }
 
 void proc1(void) {
     while (1) {
+		int i;
+		MSG_BUF* message = request_memory_block();
+		uint32_t end = 0;
+		uint32_t begin = g_timing_timer->TC;
+		
+		for (i = 0; i < 1000; i++) {
+			send_message(2, message);
+		}
+		
+		end = g_timing_timer->TC - begin;
+		
         release_processor();
     }
 }

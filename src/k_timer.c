@@ -1,5 +1,6 @@
 #include <LPC17xx.h>
 #include "k_timer.h"
+#include "utils.h"
 
 #ifdef DEBUG_0
     #include "printf.h"
@@ -12,10 +13,11 @@ extern void k_set_timer_interrupt_pending(void);
 
 volatile uint32_t g_timer = 0; // increments every 1 ms
 
-LPC_TIM_TypeDef* g_timing_timer;
+LPC_TIM_TypeDef* g_timing_timer = 0;
 
 /**
- * @brief: initialize timer. Only timer 0 is supported
+ * @brief: initialize timer. Only timer 0 is suppor
+ted
  */
 uint32_t timer_init(uint8_t n_timer) {
     LPC_TIM_TypeDef* pTimer;
@@ -71,22 +73,27 @@ uint32_t timer_init(uint8_t n_timer) {
        TC (Timer Counter) toggles b/w 0 and 1 every 12500 PCLKs
        see MR setting below
     */
-    pTimer->PR = (n_timer == 0 ? 12499 : 0);
+    pTimer->PR = (n_timer == 0 ? 12499 : 3);
 
     /* Step 4.2: MR setting, see section 21.6.7 on pg496 of LPC17xx_UM. */
     pTimer->MR0 = 1;
 
+	
+	
     /* Step 4.3: MCR setting, see table 429 on pg496 of LPC17xx_UM.
        Interrupt on MR0: when MR0 mathches the value in the TC,
                          generate an interrupt.
        Reset on MR0: Reset TC if MR0 mathches it.
     */
     if (n_timer == 0) pTimer->MCR = BIT(0) | BIT(1);
+	if (n_timer == 1) pTimer->MCR = 0;
 
     g_timer = 0;
 
     /* Step 4.4: CSMSIS enable timer0 IRQ */
-	if (n_timer == 0) NVIC_EnableIRQ(TIMER0_IRQn);
+	if (n_timer == 0) {
+		NVIC_EnableIRQ(TIMER0_IRQn);
+	}
 
     /* Step 4.5: Enable the TCR. See table 427 on pg494 of LPC17xx_UM. */
     pTimer->TCR = 1;
@@ -112,7 +119,6 @@ __asm void TIMER0_IRQHandler(void) {
 }
 
 void c_TIMER0_IRQHandler(void) {
-    k_set_timer_interrupt_pending();
+	k_set_timer_interrupt_pending();
     k_release_processor();
-	g_timing_timer->TC = 0;
 }
