@@ -22,6 +22,7 @@ void k_rtx_init(void) {
     memory_init();
     process_init();
     timer_init(0);
+	  timer_init(1);
 
     __enable_irq();
 

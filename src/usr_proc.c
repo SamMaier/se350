@@ -5,10 +5,11 @@
 #include "usr_proc.h"
 #include "utils.h"
 
+#define TIMING_TESTS
 //#define SIMPLE_TESTS
 //#define MEMORY_TESTS
 //#define MESSAGE_TESTS
-#define KCD_CRT_TESTS
+//#define KCD_CRT_TESTS
 //#define SET_PROC_PRIORITY_TESTS
 
 extern PROC_INIT g_proc_table[];
@@ -629,5 +630,45 @@ void proc3(void) { while (1) { logln("Process 3"); release_processor(); } }
 void proc4(void) { while (1) { logln("Process 4"); release_processor(); } }
 void proc5(void) { while (1) { logln("Process 5"); release_processor(); } }
 void proc6(void) { while (1) { logln("Process 6"); release_processor(); } }
+
+#endif
+
+#ifdef TIMING_TESTS
+
+void proc1(void) {
+    while (1) {
+        release_processor();
+    }
+}
+
+void proc2(void) {
+    while (1) {
+        release_processor();
+    }
+}
+
+void proc3(void) {
+    while (1) {
+        release_processor();
+    }
+}
+
+void proc4(void) {
+    while (1) {
+        release_processor();
+    }
+}
+
+void proc5(void) {
+    while (1) {
+        release_processor();
+    }
+}
+
+void proc6(void) {
+    while (1) {
+        release_processor();
+    }
+}
 
 #endif
