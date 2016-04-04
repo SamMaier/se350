@@ -638,20 +638,50 @@ void proc6(void) { while (1) { logln("Process 6"); release_processor(); } }
 #ifdef TIMING_TESTS
 
 void proc1(void) {
-    while (1) {
-		int i;
-		MSG_BUF* message = request_memory_block();
-		uint32_t end = 0;
-		uint32_t begin = g_timing_timer->TC;
-		
-		for (i = 0; i < 1000; i++) {
-			send_message(2, message);
+    uint32_t request_memory_block_elapsed = 0;
+	uint32_t send_message_elapsed = 0;
+	uint32_t receive_message_elapsed = 0;
+	uint32_t release_memory_block_elapsed = 0;
+	int iteration = 0;
+
+	set_process_priority(1, MEDIUM);
+
+	while (1) {
+		int start_time;
+		MSG_BUF* msg;
+
+		// Time request_memory_block()
+		start_time = g_timing_timer->TC;
+		msg = request_memory_block();
+		request_memory_block_elapsed += g_timing_timer->TC - start_time;
+
+		// Time send_message()
+		start_time = g_timing_timer->TC;
+		send_message(1, msg);
+		send_message_elapsed += g_timing_timer->TC - start_time;
+
+		// Time receive_message()
+		start_time = g_timing_timer->TC;
+		msg = receive_message(NULL);
+		receive_message_elapsed += g_timing_timer->TC - start_time;
+
+		// release memory block
+		start_time = g_timing_timer->TC;
+		release_memory_block(msg);
+		release_memory_block_elapsed += g_timing_timer->TC - start_time;
+
+		iteration++;
+
+		if (iteration % 1000 == 0) {
+			logln("--------------------");
+			logln("For teration: %d", iteration);
+
+			logln("request memory block: %d ns per request", (request_memory_block_elapsed * 10) / iteration);
+			logln("release memory block: %d ns per request", (release_memory_block_elapsed * 10) / iteration);
+			logln("send message        : %d ns per message", (send_message_elapsed * 10) / iteration);
+			logln("receive message     : %d ns per message", (receive_message_elapsed * 10) / iteration);
 		}
-		
-		end = g_timing_timer->TC - begin;
-		
-        release_processor();
-    }
+	}
 }
 
 void proc2(void) {

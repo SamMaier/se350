@@ -57,6 +57,9 @@ uint32_t timer_init(uint8_t n_timer) {
     } else if (n_timer == 1) {
 		pTimer = (LPC_TIM_TypeDef*) LPC_TIM1;
 		g_timing_timer = pTimer;
+
+		LPC_SC->PCLKSEL0 |= BIT(4);
+		LPC_SC->PCLKSEL0 &= ~BIT(5);
 	}	else { /* other timer not supported yet */
         return 1;
     }
@@ -73,10 +76,10 @@ uint32_t timer_init(uint8_t n_timer) {
        TC (Timer Counter) toggles b/w 0 and 1 every 12500 PCLKs
        see MR setting below
     */
-    pTimer->PR = (n_timer == 0 ? 12499 : 3);
+    pTimer->PR = (n_timer == 0 ? 12499 : 0);
 
     /* Step 4.2: MR setting, see section 21.6.7 on pg496 of LPC17xx_UM. */
-    pTimer->MR0 = 1;
+    if (n_timer == 0) pTimer->MR0 = 1;
 
 	
 	
